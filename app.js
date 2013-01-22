@@ -3,33 +3,67 @@
  * Module dependencies.
  */
 
-var express = require('express')
-  , routes = require('./routes')
-  , user = require('./routes/user')
-  , http = require('http')
-  , path = require('path');
+var express = require('express'), 
+	routes = require('./routes'), 
+	http = require('http'),
+	app = express(),
+	port = process.env.PORT || 5000,
+	server = http.createServer(app),
+	io = require('socket.io').listen(server, {log: false}),
+	Backbone = require('backbone'),
+	_ = require('underscore')._;
 
-var app = express();
+server.listen(port);
+console.log("Express server listening on port %d in %s mode", server.address().port, app.settings.env);
 
-app.configure(function(){
-  app.set('port', process.env.PORT || 3000);
+// Configuration
+
+app.configure(function() {
   app.set('views', __dirname + '/views');
-  app.set('view engine', 'jade');
-  app.use(express.favicon());
-  app.use(express.logger('dev'));
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(app.router);
-  app.use(express.static(path.join(__dirname, 'public')));
+  app.use(express.static(__dirname + '/public'));
 });
 
-app.configure('development', function(){
+app.configure('development', function() {
+  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+});
+
+app.configure('production', function() {
   app.use(express.errorHandler());
 });
 
-app.get('/', routes.index);
-app.get('/users', user.list);
+// Heroku won't actually allow us to use WebSockets
+// so we have to setup polling instead.
+// https://devcenter.heroku.com/articles/using-socket-io-with-node-js-on-heroku
+io.configure(function () {
+  io.set("transports", ["xhr-polling"]);
+  io.set("polling duration", 10);
+});
 
-http.createServer(app).listen(app.get('port'), function(){
-  console.log("Express server listening on port " + app.get('port'));
+// Routes
+
+app.get('/', function (req, res) {
+  res.sendfile(__dirname + '/views/index.html');
+});
+
+var GameModel = require('./public/js/game.model');
+var gameModel = new GameModel();
+console.log(gameModel);
+var clients = [];
+
+io.sockets.on('connection', function (socket) {
+	clients.push(socket);
+	console.log(gameModel);
+	console.log("new client: " + socket.id);
+	socket.emit('connected', {});
+	/*socket.on('cellClicked', function(data){
+		var index = data.cellIndex, value = data.cellValue;
+		gameModel.updateCell(index, value);
+		for(var i=0; i<clients.length; i++)
+		{
+			if(clients[i] != socket) clients[i].emit('modelChanged', {index: index, value: value});
+		}
+	});*/
 });

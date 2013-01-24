@@ -14,7 +14,7 @@ var CellView = Backbone.View.extend({
 		var x = position['x'];
 		var y = position['y'];
 		context.fillStyle = this.colour;
-		context.fillRect(x * size, y * size, size, size); 
+		context.fillRect(x * size, y * size, size, size);
 	},
 	setRenderColour:function(){
 		console.log("Cell model changed");
@@ -26,7 +26,7 @@ var CellView = Backbone.View.extend({
 });
 
 var GameView = Backbone.View.extend({
-	el: $('body'), 
+	el: $('body'),
 	initialize: function(initObj){
 		$(this.el).append("<canvas id='myCanvas'></canvas>");
 		this.el = document.getElementById('myCanvas');
@@ -41,10 +41,10 @@ var GameView = Backbone.View.extend({
 			this.cellViews.push(new CellView({model:cellModel}));
 		}
 		_.bindAll(this, 'render', 'resizeCanvas','onCanvasClicked', 'checkCellsClicked');
-		
+
 		this.resizeCanvas();
 	},
-	
+
 	render: function(){
 		var cells = this.cellViews;
 		var canvas = this.el;
@@ -55,7 +55,7 @@ var GameView = Backbone.View.extend({
 			var cellView = cells[i];
 			cellView.render();
 		}
-		
+
 	},
 
 	resizeCanvas: function(){
@@ -64,18 +64,18 @@ var GameView = Backbone.View.extend({
 		canvas.height = window.innerHeight;
 		this.render();
 	},
-	
+
 	events:{
 		"click canvas": "onCanvasClicked"
 	},
-	
+
 	onCanvasClicked: function(e){
 		var mouseX = e.pageX - $('#myCanvas').offset().left;
 		var mouseY = e.pageY - $('#myCanvas').offset().top;
 		console.log("mouse: " + mouseX + ", " + mouseY);
 		this.checkCellsClicked(mouseX, mouseY);
 	},
-	
+
 	checkCellsClicked:function(xPos, yPos) {
 		var clickedIndex = -1;
 		_.each(this.collection, function(element, index, list){
@@ -91,7 +91,7 @@ var GameView = Backbone.View.extend({
 		if (clickedIndex >-1) {
 			var cell = this.collection.at(clickedIndex);
 			console.log("You clicked cell at " + cell.get('position')['x'] + ", " + cell.get('position')['y']);
-			var newValue = Math.random(); 
+			var newValue = Math.random();
 			cell.set({value: newValue});
 			socket.emit('cellClicked', {cellIndex: clickedIndex, cellValue: newValue});
 		}
@@ -100,22 +100,23 @@ var GameView = Backbone.View.extend({
 
 $(document).ready(function(e)
 {
-	
+
 	socket.on('connected', function(data)
 	{
-		var gameModel = new GameModel(data.height, data.width, data.Depth);
+		var gameModel = new GameModel(data);
 		//window.addEventListener( 'resize', gameView.onWindowResize, false );
 		console.log("Connected to server. Client ID = " + data.id);
-		$('#key1').css({
+		//console.log(data);
+		/*$('#key1').css({
 			'background-color': data.colours[0],
 			'color': data.textColours[0]
 		});
 		$('#keyText1').html(data.playerCubes[0]);
-		
+
 		$('#key2').css({
 			'background-color': data.colours[1],
 			'color': data.textColours[1]
 		})
-		$('#keyText2').html(data.playerCubes[0]);
+		$('#keyText2').html(data.playerCubes[0]);*/
 	});
 });

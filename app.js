@@ -3,8 +3,8 @@
  * Module dependencies.
  */
 
-var express = require('express'), 
-	routes = require('./routes'), 
+var express = require('express'),
+	routes = require('./routes'),
 	http = require('http'),
 	app = express(),
 	port = process.env.PORT || 5000,
@@ -48,30 +48,31 @@ app.get('/', function (req, res) {
   res.sendfile(__dirname + '/views/index.html');
 });
 
-var GameModel = require('./public/js/game.model');
-var gameModel = new GameModel(10,10,10);
+var GameModel = require('./public/js/game.model.backbone');
+var gameModel = new GameModel({height:10,width:10,depth:10});
 //console.log(gameModel);
 var clients = [];
 
 io.sockets.on('connection', function (socket) {
 	clients.push(socket);
 	console.log("new client: " + socket.id);
-	var colours = gameModel.colours, textColours = gameModel.textColours, playerCubes = gameModel.playerCubes;
-	var w = gameModel.width, h = gameModel.height, d = gameModel.depth;
+	var colours = gameModel.get('colours'),
+		textColours = gameModel.get('textColours'),
+		playerCubes = gameModel.get('playerCubes'),
+		cubePositions = gameModel.get('cubePositions'),
+		cubeColours = gameModel.get('cubeColours'),
+		totalCubes = gameModel.get('totalCubes');
+	var w = gameModel.get('width'), h = gameModel.get('height'), d = gameModel.get('depth');
 	socket.emit('connected', {
-		colours:gameModel.colours,
-		textColours:gameModel.textColours,
-		playerCubes:gameModel.playerCubes,
+		id:socket.id,
 		width: w,
 		height: h,
-		depth: d
+		depth: d,
+		cubePositions: cubePositions,
+		cubeColours: cubeColours,
+		totalCubes: totalCubes,
+		playerCubes:playerCubes,
+		colours:colours,
+		textColours:textColours
 	});
-	/*socket.on('cellClicked', function(data){
-		var index = data.cellIndex, value = data.cellValue;
-		gameModel.updateCell(index, value);
-		for(var i=0; i<clients.length; i++)
-		{
-			if(clients[i] != socket) clients[i].emit('modelChanged', {index: index, value: value});
-		}
-	});*/
 });

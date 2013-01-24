@@ -1,23 +1,29 @@
-var Utils = exports;
+var server = false;
+if (typeof exports !== 'undefined') {
+	server = true;
+}
 
-Utils.normalise = function(value, low, high)
+function Utils(){
+}
+
+Utils.prototype.normalise = function(value, low, high)
 {		
 	var range = high - low;
 	return (value - low) / range;
 }
 
-Utils.map = function(value, lo1, hi1, lo2, hi2)
+Utils.prototype.map = function(value, lo1, hi1, lo2, hi2)
 {
-	var normal = Utils.normalise(value, lo1, hi1);
+	var normal = this.normalise(value, lo1, hi1);
 	return normal * (hi2 - lo2) + lo2;
 }
 
-Utils.dist = function(x1, y1, x2, y2) // Pythag! :D
+Utils.prototype.dist = function(x1, y1, x2, y2) // Pythag! :D
 {
 	return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }
 
-Utils.getRandomColor = function() {
+Utils.prototype.getRandomColor = function() {
     var letters = '0123456789ABCDEF'.split('');
     var color = '#';
     for (var i = 0; i < 6; i++ ) {
@@ -26,14 +32,14 @@ Utils.getRandomColor = function() {
     return color;
 }
 
-Utils.stripHexHash = function(hex)
+Utils.prototype.stripHexHash = function(hex)
 {
 	if(hex.replace) return hex.replace(/^\s*#|\s*$/g, '');
 }
 
-Utils.increaseBrightness = function(hex, percent){
+Utils.prototype.increaseBrightness = function(hex, percent){
 	// strip the leading # if it's there
-	hex = Utils.stripHexHash(hex);
+	hex = this.stripHexHash(hex);
 
 	// convert 3 char codes --> 6, e.g. `E0F` --> `EE00FF`
 	if(hex.length == 3){
@@ -50,12 +56,12 @@ Utils.increaseBrightness = function(hex, percent){
 		((0|(1<<8) + b + (256 - b) * percent / 100).toString(16)).substr(1);
 }
 
-Utils.degToRad = function(degrees)
+Utils.prototype.degToRad = function(degrees)
 {
 	return degrees * Math.PI / 180;
 }
 
-Utils.print2DArray = function(array)
+Utils.prototype.print2DArray = function(array)
 {
 	result = "";
 	for(var i=0; i<array.length; i++)
@@ -76,17 +82,17 @@ Utils.print2DArray = function(array)
 	console.log(result);
 }
 
-Utils.HexStringToUint = function(hex)
+Utils.prototype.HexStringToUint = function(hex)
 {
-	return parseInt(Utils.stripHexHash(hex), 16);
+	return parseInt(this.stripHexHash(hex), 16);
 }
 
-Utils.UintToHexString = function(uint)
+Utils.prototype.UintToHexString = function(uint)
 {
 	return "#" + uint.toString(16).toUpperCase();
 }
 
-Utils.UintToRGB = function(uint)
+Utils.prototype.UintToRGB = function(uint)
 {		
 	var rgb = [];
 	
@@ -98,16 +104,16 @@ Utils.UintToRGB = function(uint)
 	return rgb;
 }
 
-Utils.DetermineBrightness = function(colour)
+Utils.prototype.DetermineBrightness = function(colour)
 {
-	console.log("DetermineBrightness::colour: " + colour);
-	var rgb = Utils.UintToRGB(colour);
+	//console.log("DetermineBrightness::colour: " + colour);
+	var rgb = this.UintToRGB(colour);
 	var brightness = Math.sqrt((rgb[0] * rgb[0] * 0.241) + (rgb[1] * rgb[1] * 0.691) + (rgb[2] * rgb[2] * 0.068) ) / 255;
-	console.log("brightness: " + brightness);
+	//console.log("brightness: " + brightness);
 	return brightness;
 }
 
-Utils.getCubeIndexFromVector = function(x, y, z)
+Utils.prototype.getCubeIndexFromVector = function(x, y, z)
 {
 	for (i in cubes) 
 	{
@@ -119,8 +125,10 @@ Utils.getCubeIndexFromVector = function(x, y, z)
 	return -1;
 }
 
-Utils.cubeExistsAbove = function(x, y, z)
+Utils.prototype.cubeExistsAbove = function(x, y, z)
 {
-	var cubeAboveIndex = Utils.getCubeIndexFromVector(x, y+1, z);
+	var cubeAboveIndex = this.getCubeIndexFromVector(x, y+1, z);
 	return (cubeAboveIndex != -1);
 }
+
+if(server) module.exports = Utils;

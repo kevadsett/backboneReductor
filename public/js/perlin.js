@@ -1,18 +1,26 @@
-var Perlin = exports;
-var Utils = require("./utils");
-Perlin.setupPerlin = function(pRows, pColumns)
-{
-	Perlin.rows = pRows;
-	Perlin.columns = pColumns;
+var server = false;
+if (typeof exports !== 'undefined') {
+	server = true;
+	Utils = require('./utils');
+} 
+
+var utils = new Utils();
+function Perlin(){
 }
 
-Perlin.generateNoise = function()
+Perlin.prototype.setupPerlin = function(pRows, pColumns)
 {
-	var noise = new Array(Perlin.rows)
-	for(var i = 0; i < Perlin.rows; i++)
+	this.rows = pRows;
+	this.columns = pColumns;
+}
+
+Perlin.prototype.generateNoise = function()
+{
+	var noise = new Array(this.rows)
+	for(var i = 0; i < this.rows; i++)
 	{
-		noise[i] = new Array(Perlin.columns)
-		for(var j = 0; j < Perlin.columns; j++)
+		noise[i] = new Array(this.columns)
+		for(var j = 0; j < this.columns; j++)
 		{
 			noise[i][j] = Math.random();
 		}
@@ -20,17 +28,17 @@ Perlin.generateNoise = function()
 	return noise;
 }
 
-Perlin.generateMountainNoise = function()
+Perlin.prototype.generateMountainNoise = function()
 {
-	var noise = new Array(Perlin.rows)
-	var midCol = Perlin.columns / 2;
-	var midRow = Perlin.rows / 2;
-	for(var i = 0; i < Perlin.rows; i++)
+	var noise = new Array(this.rows)
+	var midCol = this.columns / 2;
+	var midRow = this.rows / 2;
+	for(var i = 0; i < this.rows; i++)
 	{
-		noise[i] = new Array(Perlin.columns)
-		for(var j = 0; j < Perlin.columns; j++)
+		noise[i] = new Array(this.columns)
+		for(var j = 0; j < this.columns; j++)
 		{
-			var distanceValue = Utils.map(Utils.dist(i, j, midRow, midCol), 0, Math.min(midCol, midRow), 1, 0);
+			var distanceValue = utils.map(utils.dist(i, j, midRow, midCol), 0, Math.min(midCol, midRow), 1, 0);
 			distanceValue = Math.max(0, distanceValue);
 			var lowerBound = Math.max(distanceValue - 0.4, 0);
 			var range = distanceValue - lowerBound;
@@ -40,12 +48,12 @@ Perlin.generateMountainNoise = function()
 	return noise;
 }
 
-Perlin.generateRandomHeightMap = function(pMaxHeight)
+Perlin.prototype.generateRandomHeightMap = function(pMaxHeight)
 {
-	var heightmap = Perlin.generateNoise();
-	for(var i = 0; i < Perlin.rows; i++)
+	var heightmap = this.generateNoise();
+	for(var i = 0; i < this.rows; i++)
 	{
-		for(var j = 0; j < Perlin.columns; j++)
+		for(var j = 0; j < this.columns; j++)
 		{
 			heightmap[i][j] *= pMaxHeight;
 		}
@@ -53,78 +61,78 @@ Perlin.generateRandomHeightMap = function(pMaxHeight)
 	return heightmap;
 }
 
-Perlin.generatePerlinHeightMap = function(pMaxHeight)
+Perlin.prototype.generatePerlinHeightMap = function(pMaxHeight)
 {
 	maxHeight = pMaxHeight;
-	var perlinNoise = Perlin.generatePerlinNoise(Perlin.generateNoise(), 4);
-	for(var i = 0; i < Perlin.rows; i++)
+	var PerlinNoise = this.generatePerlinNoise(this.generateNoise(), 4);
+	for(var i = 0; i < this.rows; i++)
 	{
-		for(var j = 0; j < Perlin.columns; j++)
+		for(var j = 0; j < this.columns; j++)
 		{
-			perlinNoise[i][j] *= maxHeight;
+			PerlinNoise[i][j] *= maxHeight;
 		}
 	}
-	return perlinNoise;
+	return PerlinNoise;
 }
 
-Perlin.generatePerlinMountainMap = function(pMaxHeight)
+Perlin.prototype.generatePerlinMountainMap = function(pMaxHeight)
 {
 	var step = 1;
-	var perlinNoise = Perlin.generatePerlinNoise(Perlin.generateMountainNoise(), 4);
-	for(var i = 0; i < Perlin.rows; i++)
+	var PerlinNoise = this.generatePerlinNoise(this.generateMountainNoise(), 4);
+	for(var i = 0; i < this.rows; i++)
 	{
-		for(var j = 0; j < Perlin.columns; j++)
+		for(var j = 0; j < this.columns; j++)
 		{
-			perlinNoise[i][j] *= pMaxHeight;
-			perlinNoise[i][j] = Math.round(perlinNoise[i][j] / step);
+			PerlinNoise[i][j] *= pMaxHeight;
+			PerlinNoise[i][j] = Math.round(PerlinNoise[i][j] / step);
 		}
 	}
-	return perlinNoise;
+	return PerlinNoise;
 }
 
-Perlin.lerp = function(a, b, f)
+Perlin.prototype.lerp = function(a, b, f)
 {
 	return a + f * (b - a);
 }
 
-Perlin.generateSmoothNoise = function(baseNoise, octave)
+Perlin.prototype.generateSmoothNoise = function(baseNoise, octave)
 {
-	var smoothNoise = new Array(Perlin.rows);
-	for(var i = 0; i < Perlin.rows; i++)
+	var smoothNoise = new Array(this.rows);
+	for(var i = 0; i < this.rows; i++)
 	{
-		smoothNoise[i] = new Array(Perlin.columns);
+		smoothNoise[i] = new Array(this.columns);
 	}
 	
 	var samplePeriod = 1 << octave;
 	var sampleFrequency = 1.0 / samplePeriod;
 	
-	for(var i=0; i < Perlin.rows; i++)
+	for(var i=0; i < this.rows; i++)
 	{
 		// calculate vertical sampling indices
 		var sample_i0 = Math.floor(i / samplePeriod) * samplePeriod;
-		var sample_i1 = (sample_i0 + samplePeriod) % Perlin.rows;
+		var sample_i1 = (sample_i0 + samplePeriod) % this.rows;
 		var verticalBlend = (i - sample_i0) * sampleFrequency;
-		for(var j = 0; j < Perlin.columns; j++)
+		for(var j = 0; j < this.columns; j++)
 		{
 			// calculate horizontal sampling indices
 			var sample_j0 = Math.floor(j / samplePeriod) * samplePeriod;
-			var sample_j1 = (sample_j0 + samplePeriod) % Perlin.columns;
+			var sample_j1 = (sample_j0 + samplePeriod) % this.columns;
 			var horizontalBlend = (j - sample_j0) * sampleFrequency;
 			
 			//console.log("sample_0: " + sample_i0 + ", " + sample_j0 + ". sample_1: " + sample_i1 + ", " + sample_j1);	
 			
 			// blend the top two corners
-			var top = Perlin.lerp(baseNoise[sample_i0][sample_j0], baseNoise[sample_i0][sample_j1], horizontalBlend);
-			var bottom = Perlin.lerp(baseNoise[sample_i1][sample_j0], baseNoise[sample_i1][sample_j1], horizontalBlend);
+			var top = this.lerp(baseNoise[sample_i0][sample_j0], baseNoise[sample_i0][sample_j1], horizontalBlend);
+			var bottom = this.lerp(baseNoise[sample_i1][sample_j0], baseNoise[sample_i1][sample_j1], horizontalBlend);
 			
 			// blend the two together
-			smoothNoise[i][j] = Perlin.lerp(top, bottom, verticalBlend);
+			smoothNoise[i][j] = this.lerp(top, bottom, verticalBlend);
 		}
 	}
 	return smoothNoise;
 }
 
-Perlin.generatePerlinNoise = function(baseNoise, octaveCount)
+Perlin.prototype.generatePerlinNoise = function(baseNoise, octaveCount)
 {
 	var persistence = 0.5;
 	var amplitude = 1.0;
@@ -133,15 +141,15 @@ Perlin.generatePerlinNoise = function(baseNoise, octaveCount)
 	var smoothNoise = new Array(octaveCount);
 	for (var k=0; k < octaveCount; k++)
 	{
-		smoothNoise[k] = Perlin.generateSmoothNoise(baseNoise, k);
+		smoothNoise[k] = this.generateSmoothNoise(baseNoise, k);
 	}
-	var perlinNoise = new Array(Perlin.rows);
-	for (var i=0; i<Perlin.rows; i++)
+	var PerlinNoise = new Array(this.rows);
+	for (var i=0; i<this.rows; i++)
 	{
-		perlinNoise[i] = new Array(Perlin.columns);
-		for (var j=0; j<Perlin.columns; j++)
+		PerlinNoise[i] = new Array(this.columns);
+		for (var j=0; j<this.columns; j++)
 		{
-			perlinNoise[i][j] = 0.0;
+			PerlinNoise[i][j] = 0.0;
 		}
 	}
 	
@@ -150,23 +158,25 @@ Perlin.generatePerlinNoise = function(baseNoise, octaveCount)
 		amplitude *= persistence;
 		totalAmplitude += amplitude;
 				
-		for (var i=0; i<Perlin.rows; i++)
+		for (var i=0; i<this.rows; i++)
 		{
-			for (var j=0; j<Perlin.columns; j++)
+			for (var j=0; j<this.columns; j++)
 			{
-				perlinNoise[i][j] += smoothNoise[k][i][j] * amplitude;
+				PerlinNoise[i][j] += smoothNoise[k][i][j] * amplitude;
 			}
 		}
 	}
 	
 	// normalisation
-	for (var i = 0; i < Perlin.rows; i++)
+	for (var i = 0; i < this.rows; i++)
 	{
-		for (var j = 0; j < Perlin.columns; j++)
+		for (var j = 0; j < this.columns; j++)
 		{
-			perlinNoise[i][j] /= totalAmplitude;
+			PerlinNoise[i][j] /= totalAmplitude;
 		}
 	}
 	
-	return perlinNoise;
+	return PerlinNoise;
 }
+
+if(server) module.exports = Perlin;

@@ -98,6 +98,7 @@ var Cells = Backbone.Collection.extend({
 if(server)
 {
 	exports.Vector2D = Vector2D;
+	exports.Vector3D = Vector3D;
 	exports.Cell = Cell;
 	exports.Cells = Cells;
 }

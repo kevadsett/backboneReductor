@@ -49,15 +49,23 @@ app.get('/', function (req, res) {
 });
 
 var GameModel = require('./public/js/game.model');
-var gameModel = new GameModel();
-console.log(gameModel);
+var gameModel = new GameModel(10,10,10);
+//console.log(gameModel);
 var clients = [];
 
 io.sockets.on('connection', function (socket) {
 	clients.push(socket);
-	console.log(gameModel);
 	console.log("new client: " + socket.id);
-	socket.emit('connected', {});
+	var colours = gameModel.colours, textColours = gameModel.textColours, playerCubes = gameModel.playerCubes;
+	var w = gameModel.width, h = gameModel.height, d = gameModel.depth;
+	socket.emit('connected', {
+		colours:gameModel.colours,
+		textColours:gameModel.textColours,
+		playerCubes:gameModel.playerCubes,
+		width: w,
+		height: h,
+		depth: d
+	});
 	/*socket.on('cellClicked', function(data){
 		var index = data.cellIndex, value = data.cellValue;
 		gameModel.updateCell(index, value);

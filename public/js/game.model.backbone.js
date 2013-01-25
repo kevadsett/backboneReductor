@@ -6,7 +6,8 @@ if (typeof exports !== 'undefined') {
 	Utils = require('./utils');
 	Perlin = require('./perlin');
 	models = require('./models');
-	Cubes = require('.cube.collection.backbone');
+	Cubes = require('./cube.collection.backbone');
+	Cube = require('./cube.model.backbone');
 	var Vector3D = models.Vector3D;
 }
 
@@ -15,20 +16,17 @@ var perlin = new Perlin();
 
 var GameModel = Backbone.Model.extend({
 	defaults:{
-		cubePositions: [],
-
-		totalCubes: 0,
-		playerCubes: new Array(2),
+		cubes: new Cubes(),
 		colours: [utils.getRandomColor(), utils.getRandomColor()],
 	},
 	initialize: function(params){
 		console.log(params);
+		_.bindAll(this, 'generateLevelData', 'setCubeColours', 'cloneModelFrom', 'shaveTopCubeOff');
 		if(params.colours){
 			this.cloneModelFrom(params)
 		} else if(params.height){
 			this.set({height: params.height, width: params.width, depth: params.depth});
 			this.set({textColours: [utils.DetermineBrightness(utils.HexStringToUint(this.get('colours')[0])) < 0.5 ? "#FFFFFF" : "#000000", utils.DetermineBrightness(utils.HexStringToUint(this.get('colours')[1])) < 0.5 ? "#FFFFFF" : "#000000"]});
-			_.bindAll(this, 'generateLevelData', 'setCubeColours', 'cloneModelFrom', 'shaveTopCubeOff');
 			this.generateLevelData();
 			this.setCubeColours();
 		}
@@ -37,112 +35,90 @@ var GameModel = Backbone.Model.extend({
 		var width = this.get('width')
 		,	height = this.get('height')
 		,	depth = this.get('depth')
-		,	cubePositions = this.get('cubePositions')
-		,	totalCubes = this.get('totalCubes');
+		,	cubes = this.get('cubes');
 		console.log("Generating level data.");
 		perlin.setupPerlin(width, depth);
 		var heightMap = perlin.generatePerlinMountainMap(height);
 		var colourChoice = 0;
 		for(var i=0; i<width; i++) {
 			for(var j = 0; j<depth; j++) {
-				cubePositions.push(new Vector3D(i - (width/2), heightMap[i][j], j - (depth/2)));
-				totalCubes ++;
-
+				var newPosition = new Vector3D({x: i - (width/2), y:heightMap[i][j], z:j - (depth/2)});
+				cubes.addCube({position: newPosition});
 				if(heightMap[i][j] != 0) {
 					var currentHeight = heightMap[i][j];
 					while (currentHeight != 0) {
 						currentHeight--;
-						cubePositions.push(new Vector3D(i - (width/2), currentHeight, j - (depth/2)));
-						totalCubes ++;
+						var newSubPosition = new Vector3D({x:i - (width/2), y:currentHeight, z:j - (depth/2)})
+						cubes.addCube({position: newSubPosition});
 					}
 				}
 			}
 		}
-		this.set({cubePositions: cubePositions, totalCubes: totalCubes});
+		this.set({cubes: cubes});
 	},
 	setCubeColours: function(){
-		var playerCubes = this.get('playerCubes')
-		,	cubeColours = this.get('cubeColours')
-		,	totalCubes = this.get('totalCubes')
+		var playerCubes = new Array(2)
 		,	colours = this.get('colours');
 		console.log("Setting cube colours.");
 		playerCubes[0] = new Cubes();
 		playerCubes[1] = new Cubes();
-		cubeColours = new Array(totalCubes);
-		var cubesLeftToPopulate = totalCubes;
+		var leftToPopulate = this.get('cubes').length;
 		var colourChoice = 0;
-		while (cubesLeftToPopulate > 0)
+		while (leftToPopulate > 0)
 		{
-			colourChoice = (colourChoice + 1) % 2;
-			(colourChoice == 0) ? playerCubes[0] ++ : playerCubes[1] ++;
-			var positionSelection = Math.floor(Math.random() * totalCubes);
-			while(cubeColours[positionSelection] != null)
+			console.log("leftToPopulate: " + leftToPopulate);
+			var positionSelection = Math.floor(Math.random() * this.get('cubes').length);
+			while(this.get('cubes').at(positionSelection).get('positionSet') == true)
 			{
-				positionSelection = Math.floor(Math.random() * totalCubes);
+				positionSelection = Math.floor(Math.random() * this.get('cubes').length);
 			}
-			cubeColours[positionSelection] = colourChoice;
-			cubesLeftToPopulate--;
+			this.get('cubes').at(positionSelection).set({positionSet:true});
+			var cubePosition = this.get('cubes').at(positionSelection).get('position');
+			var cubeColour = this.get('colours')[colourChoice];
+			playerCubes[colourChoice].add(new Cube({position:cubePosition , colour:cubeColour}));
+			leftToPopulate--;
+			colourChoice = (colourChoice + 1) % 2;
 		}
-		this.set({playerCubes: playerCubes, cubeColours: cubeColours});
+		this.set({playerCubes: playerCubes});
 
 		if(playerCubes[0] > playerCubes[1])
 		{
-			this.shaveTopCubeOff(colours[0]);
+			this.shaveTopCubeOff(0);
 		}
 		else if(playerCubes[0] < playerCubes[1])
 		{
-			this.shaveTopCubeOff(colours[1]);
+			this.shaveTopCubeOff(1);
 		}
 	},
-	shaveTopCubeOff: function(colourToRemove){
+	shaveTopCubeOff: function(playerToRemove){
 		console.log("Shaving top cube off to even out the numbers.");
-		var cubeColours = this.get('cubeColours')
-		,	cubePositions = this.get('cubePositions')
-		,	playerCubes = this.get('playerCubes')
-		,	width = this.get('width')
+		var width = this.get('width')
 		,	depth = this.get('depth')
 		,	colours = this.get('colours')
 		var topPosition = new Vector3D(0, 0, 0);
-		var topPositionIndex = 0;
+		var topCube;
 
-		for(var i = 0; i < cubeColours.length; i++)
+		for(var i = 0; i < this.get('playerCubes')[playerToRemove].length; i++)
 		{
-			if(cubeColours[i] == colourToRemove)
-			{
-				var currentPosition = cubePositions[i]
-				, xIsBetter = Math.abs(currentPosition.x - width/2) < Math.abs(topPosition.x - width/2)
-				, yIsBetter = currentPosition.y > topPosition.y
-				, zIsBetter = Math.abs(currentPosition.z - depth/2) < Math.abs(topPosition.z - depth/2);
+			var currentPosition = this.get('playerCubes')[playerToRemove].at(i).get('position')
+			, xIsBetter = Math.abs(currentPosition.x - width/2) < Math.abs(topPosition.x - width/2)
+			, yIsBetter = currentPosition.y > topPosition.y
+			, zIsBetter = Math.abs(currentPosition.z - depth/2) < Math.abs(topPosition.z - depth/2);
 
-				if(xIsBetter && yIsBetter && zIsBetter)
-				{
-					topPosition = currentPosition;
-					topPositionIndex = i;
-				}
+			if(xIsBetter && yIsBetter && zIsBetter)
+			{
+				topPosition = currentPosition;
+				topCube = this.get('playerCubes')[playerToRemove].at(i);
 			}
 		}
-		cubePositions.splice(topPositionIndex, 1);
-		cubeColours.splice(topPositionIndex, 1);
-
-		var colourIndex = colours.indexOf(colourToRemove);
-		if(colourIndex == 0)
-		{
-			playerCubes[0]--;
-		}
-		else if(colourIndex == 1)
-		{
-			playerCubes[1]--;
-		}
-
-		this.set({cubeColours: cubeColours, cubePositions: cubePositions, playerCubes: playerCubes});
+		this.get('playerCubes')[playerToRemove].remove(topCube);
 	},
 	cloneModelFrom: function(model)
 	{
 		this.set({
-			height: model.height,
-			width: model.depth,
-			depth: model.depth,
-			cubePositions: model.cubePositions,
+			height: model.h,
+			width: model.w,
+			depth: model.d,
 			cubeColours: model.cubeColours,
 			totalCubes: model.totalCubes,
 			playerCubes: model.playerCubes,

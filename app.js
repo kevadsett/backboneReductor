@@ -49,30 +49,26 @@ app.get('/', function (req, res) {
 });
 
 var GameModel = require('./public/js/game.model.backbone');
-var gameModel = new GameModel({height:10,width:10,depth:10});
+var gameModel = new GameModel({height:2,width:2,depth:2});
+console.log("Created new game model");
 //console.log(gameModel);
 var clients = [];
 
 io.sockets.on('connection', function (socket) {
 	clients.push(socket);
 	console.log("new client: " + socket.id);
-	var colours = gameModel.get('colours'),
-		textColours = gameModel.get('textColours'),
-		playerCubes = gameModel.get('playerCubes'),
-		cubePositions = gameModel.get('cubePositions'),
-		cubeColours = gameModel.get('cubeColours'),
-		totalCubes = gameModel.get('totalCubes');
-	var w = gameModel.get('width'), h = gameModel.get('height'), d = gameModel.get('depth');
-	socket.emit('connected', {
+	var data = {
 		id:socket.id,
-		width: w,
-		height: h,
-		depth: d,
-		cubePositions: cubePositions,
-		cubeColours: cubeColours,
-		totalCubes: totalCubes,
-		playerCubes:playerCubes,
-		colours:colours,
-		textColours:textColours
-	});
+		colours: gameModel.get('colours'),
+		textColours: gameModel.get('textColours'),
+		playerCubes: gameModel.get('playerCubes'),
+		cubePositions: gameModel.get('cubePositions'),
+		cubeColours: gameModel.get('cubeColours'),
+		totalCubes: gameModel.get('totalCubes'),
+		w: gameModel.get('width'),
+		h: gameModel.get('height'),
+		d: gameModel.get('depth')
+	};
+	console.log(data);
+	socket.emit('connected', data);
 });

@@ -4,16 +4,17 @@ if (typeof exports !== 'undefined') {
 	Backbone = require('Backbone');
 	_ = require('underscore');
 	models = require('./models');
-	var Vector3D = models.Vector3D;
+	Vector3D = models.Vector3D
 }
 
 var CubeModel = Backbone.Model.extend({
 	defaults:{
 		position: new Vector3D(0,0,0),
+		positionSet: false,
 		colour: '#000000'
 	},
 	initialize: function(params){
-		console.log(params);
+		//console.log(params);
 		if(params.colour){
 			this.set({position: params.position, colour: params.colour});
 		}

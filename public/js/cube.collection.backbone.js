@@ -6,7 +6,7 @@ if (typeof exports !== 'undefined') {
 	Utils = require('./utils');
 	Perlin = require('./perlin');
 	models = require('./models');
-	CubeModel = require('./cube.collection.backbone');
+	CubeModel = require('./cube.model.backbone');
 	var Vector3D = models.Vector3D;
 }
 
@@ -22,8 +22,10 @@ var Cubes = Backbone.Collection.extend({
 	initialize: function(){
 		_.bindAll(this, 'addCube');
 	},
-	addCube: function(position, colour){
-		this.add(new CubeModel({position: position, colour: colour});
+	addCube: function(params){
+		var position = params.position;
+		console.log("Adding cube at: " + position.get('x') + ", " + position.get('y') + ", " + position.get('z'));
+		this.add(new CubeModel({position: position}));
 	}
 });
 

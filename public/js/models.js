@@ -1,9 +1,9 @@
 var server = false;
 if (typeof exports !== 'undefined') {
 	server = true;
-	Backbone = require('Backbone');
+	Backbone = require('backbone');
 	_ = require('underscore');
-} 
+}
 var Vector2D = Backbone.Model.extend({
 	defaults:{
 		x:0,

@@ -29,7 +29,7 @@ $(document).ready(function(e)
 				var cameraDistance = Math.max(this.model.get('width'), this.model.get('height'), this.model.get('depth')) + 5;
 				this.camera.position.set(cameraDistance, cameraDistance, cameraDistance);
 				this.camera.lookAt(this.scene.position);
-				_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'getIntersects');
+				_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'getIntersects', 'onKeyDown');
 				this.setupRenderer();
 				//this.resizeCanvas();
 				this.initialiseCubeViews();
@@ -68,6 +68,7 @@ $(document).ready(function(e)
 				this.renderer.setSize(window.innerWidth, window.innerHeight);
 				this.renderer.setClearColorHex( 0xEEEEEE, 1 );
 				this.renderer.domElement.addEventListener( 'mousemove', this.onMouseMoved, false );
+				$(document).keydown(this.onKeyDown);
 				/*this.renderer.domElement.addEventListener( 'mousedown', this.onDocumentMouseDown, false );*/
 				console.log("this.renderer.domElement: " + this.renderer.domElement);
 				$('body').append(this.renderer.domElement);
@@ -91,18 +92,17 @@ $(document).ready(function(e)
 
 						if(this.movementDirection == this.LEFT)
 						{
-							this.camera.position.x = this.camX * Math.cos(this.rotSpeed) - this.camZ * Math.sin(this.rotSpeed) * elapsed;
-							this.camera.position.z = this.camZ * Math.cos(this.rotSpeed) + this.camX * Math.sin(this.rotSpeed) * elapsed;
+							this.camera.position.x = this.camX * Math.cos(this.rotSpeed) - this.camZ * Math.sin(this.rotSpeed)/* * elapsed*/;
+							this.camera.position.z = this.camZ * Math.cos(this.rotSpeed) + this.camX * Math.sin(this.rotSpeed)/* * elapsed*/;
 						}
 						else if (this.movementDirection == this.RIGHT)
 						{
-							this.camera.position.x = this.camX * Math.cos(this.rotSpeed) + this.camZ * Math.sin(this.rotSpeed) * elapsed;
-							this.camera.position.z = this.camZ * Math.cos(this.rotSpeed) - this.camX * Math.sin(this.rotSpeed) * elapsed;
+							this.camera.position.x = this.camX * Math.cos(this.rotSpeed) + this.camZ * Math.sin(this.rotSpeed)/* * elapsed*/;
+							this.camera.position.z = this.camZ * Math.cos(this.rotSpeed) - this.camX * Math.sin(this.rotSpeed)/* * elapsed*/;
 						}
 						this.currentAnimFrame++;
 						this.camera.lookAt(this.scene.position);
 					}
-
 
 				}
 				this.lastTime = timeNow;
@@ -120,7 +120,7 @@ $(document).ready(function(e)
 				})
 				$('#keyText2').html(this.model.get('playerCubes')[1].length);
 
-				window.requestAnimationFrame(this.render);
+				if(this.moving) window.requestAnimationFrame(this.render);
 			},
 
 			resizeCanvas: function(){
@@ -137,37 +137,72 @@ $(document).ready(function(e)
 			onMouseMoved: function(event){
 				event.preventDefault();
 				var intersects = this.getIntersects(event);
-				/*if ( intersects ) {
+				if ( intersects ) {
 					if(intersects.length > 0)
 					{
-						if(GameView.prototype.INTERSECTED != intersects[ 0 ].object)
+						if(this.INTERSECTED != intersects[ 0 ].object)
 						{
-							if(GameView.prototype.INTERSECTED)
+							if(this.INTERSECTED)
 							{
-								GameView.prototype.INTERSECTED.material.color.setHex(utils.HexStringToUint(GameView.prototype.INTERSECTED.currentHex));
+								this.INTERSECTED.material.color.setHex(utils.HexStringToUint(this.INTERSECTED.currentHex));
 							}
-							GameView.prototype.INTERSECTED = intersects[0].object;
+							this.INTERSECTED = intersects[0].object;
 
-							GameView.prototype.INTERSECTED.currentHex = utils.UintToHexString(GameView.prototype.INTERSECTED.material.color.getHex());
-							GameView.prototype.INTERSECTED.colourIndex = GameView.prototype.colours.indexOf(GameView.prototype.INTERSECTED.currentHex);
-							if(utils.cubeIsSelectable(GameView.prototype.INTERSECTED))
+							this.INTERSECTED.currentHex = utils.UintToHexString(this.INTERSECTED.material.color.getHex());
+							this.INTERSECTED.colourIndex = this.colours.indexOf(this.INTERSECTED.currentHex);
+							if(utils.cubeIsSelectable(this.INTERSECTED))
 							{
-								GameView.prototype.INTERSECTED.selectable = true;
-								var brighterColour = utils.increaseBrightness(GameView.prototype.INTERSECTED.currentHex, 40);
-								GameView.prototype.INTERSECTED.material.color.setHex(utils.HexStringToUint(brighterColour));
+								this.INTERSECTED.selectable = true;
+								var brighterColour = utils.increaseBrightness(this.INTERSECTED.currentHex, 40);
+								this.INTERSECTED.material.color.setHex(utils.HexStringToUint(brighterColour));
 							}
 						}
 					}
 				}
 				else
 				{
-					if(GameView.prototype.INTERSECTED)
+					if(this.INTERSECTED)
 					{
-						GameView.prototype.INTERSECTED.material.color.setHex(utils.HexStringToUint(GameView.prototype.INTERSECTED.currentHex));
+						this.INTERSECTED.material.color.setHex(utils.HexStringToUint(this.INTERSECTED.currentHex));
 					}
 
-					GameView.prototype.INTERSECTED = null;
-				}*/
+					this.INTERSECTED = null;
+				}
+			},
+
+			onKeyDown: function(e){
+				switch(e.keyCode)
+				{
+					case 37: // left
+						e.preventDefault();
+						if(!this.moving)
+						{
+							this.moving = true;
+							this.currentAnimFrame = 0;
+							this.movementDirection = this.LEFT;
+						}
+					break;
+
+					case 38: // up
+						e.preventDefault();
+					break;
+
+					case 39: // right
+						e.preventDefault();
+						if(!this.moving)
+						{
+							this.moving = true;
+							this.currentAnimFrame = 0;
+							this.movementDirection = this.RIGHT;
+						}
+					break;
+
+					case 40: // down
+						e.preventDefault();
+					break;
+				}
+
+				window.requestAnimationFrame(this.render);
 			},
 
 			getIntersects: function(event)

@@ -4,8 +4,6 @@ $(document).ready(function(e)
 {
 	socket.on('connected', function(data)
 	{
-
-		//window.addEventListener( 'resize', gameView.onWindowResize, false );
 		console.log("Connected to server. Client ID = " + data.id);
 
 		var GameView = Backbone.View.extend({
@@ -31,7 +29,7 @@ $(document).ready(function(e)
 				this.camera.lookAt(this.scene.position);
 				_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'getIntersects', 'onKeyDown');
 				this.setupRenderer();
-				//this.resizeCanvas();
+				this.resizeCanvas();
 				this.initialiseCubeViews();
 				this.createLights()
 				this.render();
@@ -44,8 +42,8 @@ $(document).ready(function(e)
 					for(var j=0; j < playerCubes[i].length; j++)
 					{
 						var cubeModel = playerCubes[i].models[j];
-						this.cubeViews.push(new CubeView({model: cubeModel, scene: this.scene}));
-						this.scene.add(this.cubeViews[this.cubeViews.length-1].mesh);
+						var cubeView = new CubeView({model: cubeModel, scene: this.scene});
+						this.cubeViews.push(cubeView);
 					}
 				}
 			},
@@ -70,7 +68,7 @@ $(document).ready(function(e)
 				this.renderer.domElement.addEventListener( 'mousemove', this.onMouseMoved, false );
 				$(document).keydown(this.onKeyDown);
 				/*this.renderer.domElement.addEventListener( 'mousedown', this.onDocumentMouseDown, false );*/
-				console.log("this.renderer.domElement: " + this.renderer.domElement);
+				window.addEventListener( 'resize', this.resizeCanvas, false );
 				$('body').append(this.renderer.domElement);
 			},
 
@@ -124,10 +122,15 @@ $(document).ready(function(e)
 			},
 
 			resizeCanvas: function(){
-				var canvas = this.el;
+				var canvas = $('canvas');
 				canvas.width = window.innerWidth;
 				canvas.height = window.innerHeight;
+				this.camera.aspect = window.innerWidth / window.innerHeight;
+				this.camera.updateProjectionMatrix();
+
+				this.renderer.setSize( window.innerWidth, window.innerHeight );
 				this.render();
+
 			},
 
 			/*events:{

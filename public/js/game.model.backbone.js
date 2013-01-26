@@ -20,12 +20,13 @@ var GameModel = Backbone.Model.extend({
 		colours: [utils.getRandomColor(), utils.getRandomColor()],
 	},
 	initialize: function(params){
-		console.log(params);
 		_.bindAll(this, 'generateLevelData', 'setCubeColours', 'cloneModelFrom', 'shaveTopCubeOff');
 		if(params.colours){
+			console.log("Cloning model");
 			this.cloneModelFrom(params)
-		} else if(params.height){
-			this.set({height: params.height, width: params.width, depth: params.depth});
+		} else if(params.size){
+			console.log("Creating model");
+			this.set({height: params.size, width: params.size, depth: params.size});
 			this.set({textColours: [utils.DetermineBrightness(utils.HexStringToUint(this.get('colours')[0])) < 0.5 ? "#FFFFFF" : "#000000", utils.DetermineBrightness(utils.HexStringToUint(this.get('colours')[1])) < 0.5 ? "#FFFFFF" : "#000000"]});
 			this.generateLevelData();
 			this.setCubeColours();
@@ -66,7 +67,6 @@ var GameModel = Backbone.Model.extend({
 		var colourChoice = 0;
 		while (leftToPopulate > 0)
 		{
-			console.log("leftToPopulate: " + leftToPopulate);
 			var positionSelection = Math.floor(Math.random() * this.get('cubes').length);
 			while(this.get('cubes').at(positionSelection).get('positionSet') == true)
 			{
@@ -75,18 +75,21 @@ var GameModel = Backbone.Model.extend({
 			this.get('cubes').at(positionSelection).set({positionSet:true});
 			var cubePosition = this.get('cubes').at(positionSelection).get('position');
 			var cubeColour = this.get('colours')[colourChoice];
+			//console.log("Adding player " + (colourChoice + 1) + " cube, (colour: " + cubeColour + ") to position [" + cubePosition.get('x') + ", " + cubePosition.get('y') + ", " + cubePosition.get('z') + "]");
 			playerCubes[colourChoice].add(new Cube({position:cubePosition , colour:cubeColour}));
 			leftToPopulate--;
 			colourChoice = (colourChoice + 1) % 2;
 		}
 		this.set({playerCubes: playerCubes});
 
-		if(playerCubes[0] > playerCubes[1])
+		if(playerCubes[0].length > playerCubes[1].length)
 		{
+			console.log("Whoops, too many player 1 cubes");
 			this.shaveTopCubeOff(0);
 		}
-		else if(playerCubes[0] < playerCubes[1])
+		else if(playerCubes[0].length < playerCubes[1].length)
 		{
+			console.log("Whoops, too many player 2 cubes");
 			this.shaveTopCubeOff(1);
 		}
 	},
@@ -94,23 +97,36 @@ var GameModel = Backbone.Model.extend({
 		console.log("Shaving top cube off to even out the numbers.");
 		var width = this.get('width')
 		,	depth = this.get('depth')
-		,	colours = this.get('colours')
-		var topPosition = new Vector3D(0, 0, 0);
+		,	colours = this.get('colours');
+		var topPosition = new Vector3D({x:width/2, y:0, z:depth/2});
+		var topScore = 0;
 		var topCube;
 
 		for(var i = 0; i < this.get('playerCubes')[playerToRemove].length; i++)
 		{
-			var currentPosition = this.get('playerCubes')[playerToRemove].at(i).get('position')
-			, xIsBetter = Math.abs(currentPosition.x - width/2) < Math.abs(topPosition.x - width/2)
-			, yIsBetter = currentPosition.y > topPosition.y
-			, zIsBetter = Math.abs(currentPosition.z - depth/2) < Math.abs(topPosition.z - depth/2);
 
-			if(xIsBetter && yIsBetter && zIsBetter)
+			var currentPosition = this.get('playerCubes')[playerToRemove].at(i).get('position');
+			//console.log(currentPosition.attributes);
+			var xIsBetter = Math.abs(currentPosition.get('x')) < Math.abs(topPosition.get('x'));
+			//console.log("xIsBetter: " + xIsBetter);
+			var yIsBetter = currentPosition.get('y') > topPosition.get('y');
+			//console.log("yIsBetter: " + yIsBetter);
+			var zIsBetter = Math.abs(currentPosition.get('z')) < Math.abs(topPosition.get('z'));
+			//console.log("zIsBetter: " + zIsBetter);
+			var cubeScore = 0;
+			if(xIsBetter) cubeScore++;
+			if(yIsBetter) cubeScore+=2;
+			if(zIsBetter) cubeScore++;
+			//console.log("cubeScore: " + cubeScore);
+			//console.log("topScore: " + topScore);
+			if(cubeScore >= topScore)
 			{
+				topScore = cubeScore;
 				topPosition = currentPosition;
 				topCube = this.get('playerCubes')[playerToRemove].at(i);
 			}
 		}
+		console.log("Removing cube at position [" + topPosition.get('x') + ", " + topPosition.get('y') + ", " + topPosition.get('z') + "]");
 		this.get('playerCubes')[playerToRemove].remove(topCube);
 	},
 	cloneModelFrom: function(model)

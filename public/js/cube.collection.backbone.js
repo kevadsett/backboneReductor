@@ -24,7 +24,7 @@ var Cubes = Backbone.Collection.extend({
 	},
 	addCube: function(params){
 		var position = params.position;
-		console.log("Adding cube at: " + position.get('x') + ", " + position.get('y') + ", " + position.get('z'));
+		//console.log("Adding cube at: " + position.get('x') + ", " + position.get('y') + ", " + position.get('z'));
 		this.add(new CubeModel({position: position}));
 	}
 });

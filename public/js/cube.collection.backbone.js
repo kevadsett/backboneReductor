@@ -1,7 +1,7 @@
 var server = false;
 if (typeof exports !== 'undefined') {
 	server = true;
-	Backbone = require('Backbone');
+	Backbone = require('backbone');
 	_ = require('underscore');
 	Utils = require('./utils');
 	Perlin = require('./perlin');

@@ -1,7 +1,7 @@
 var server = false;
 if (typeof exports !== 'undefined') {
 	server = true;
-	Backbone = require('Backbone');
+	Backbone = require('backbone');
 	_ = require('underscore');
 	models = require('./models');
 	Vector3D = models.Vector3D

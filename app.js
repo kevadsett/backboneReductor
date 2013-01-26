@@ -48,10 +48,6 @@ app.get('/', function (req, res) {
   res.sendfile(__dirname + '/views/index.html');
 });
 
-app.get('/Backbone', function (req, res) {
-  res.sendfile('http://ajax.cdnjs.com/ajax/libs/backbone.js/0.3.3/backbone-min.js');
-});
-
 var GameModel = require('./public/js/game.model.backbone');
 var gameModel = new GameModel({size:10});
 console.log("Created new game model");

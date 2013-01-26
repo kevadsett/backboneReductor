@@ -132,16 +132,22 @@ var GameModel = Backbone.Model.extend({
 	cloneModelFrom: function(model)
 	{
 		this.set({
-			height: model.h,
-			width: model.w,
-			depth: model.d,
-			cubeColours: model.cubeColours,
-			totalCubes: model.totalCubes,
+			height: model.height,
+			width: model.width,
+			depth: model.depth,
 			playerCubes: model.playerCubes,
 			colours: model.colours,
 			textColours: model.textColours
 		});
-	}
+	}/*,
+	toJSON: function(){
+		var returnObject = {
+			playerCubes: this.get('playerCubes'),
+			colours: this.get('colours'),
+			textColours: this.get('textColours')
+		};
+		return returnObject;
+	}*/
 });
 
 if(server) module.exports = GameModel;

@@ -22,7 +22,12 @@ var CubeModel = Backbone.Model.extend({
 	},
 	attributesChanged: function(){
 		this.trigger("colourChanged", this.get('colour'));
-	}
+	}/*,
+	toJSON: function(){
+		var returnObject = {};
+
+		return returnObject;
+	}*/
 });
 
 if(server) module.exports = CubeModel;

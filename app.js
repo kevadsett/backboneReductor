@@ -51,24 +51,12 @@ app.get('/', function (req, res) {
 var GameModel = require('./public/js/game.model.backbone');
 var gameModel = new GameModel({size:2});
 console.log("Created new game model");
-//console.log(gameModel);
+console.log(gameModel.get('playerCubes'));
+console.log("|----------------------------------------------|");
 var clients = [];
 
 io.sockets.on('connection', function (socket) {
 	clients.push(socket);
 	console.log("new client: " + socket.id);
-	var data = {
-		id:socket.id,
-		colours: gameModel.get('colours'),
-		textColours: gameModel.get('textColours'),
-		playerCubes: gameModel.get('playerCubes'),
-		cubePositions: gameModel.get('cubePositions'),
-		cubeColours: gameModel.get('cubeColours'),
-		totalCubes: gameModel.get('totalCubes'),
-		w: gameModel.get('width'),
-		h: gameModel.get('height'),
-		d: gameModel.get('depth')
-	};
-	console.log(data);
-	socket.emit('connected', data);
+	socket.emit('connected', gameModel);
 });

@@ -9,8 +9,9 @@ var CubeView = Backbone.View.extend({
 		this.mesh.position.y = this.model.position.y;
 		this.mesh.position.z = this.model.position.z;
 		this.scene = params.scene;
-		_.bindAll(this, 'attributesChanged', 'addToScene', 'removeFromScene');
+		_.bindAll(this, 'attributesChanged', 'addToScene', 'removeFromScene', 'onMouseOver');
 		this.bind('change', this.attributesChanged);
+		//this.mesh.on('mouseover', this.onMouseOver);
 		this.addToScene();
 	},
 	attributesChanged: function(){
@@ -23,5 +24,9 @@ var CubeView = Backbone.View.extend({
 	removeFromScene: function()
 	{
 		this.scene.remove(this.mesh);
+	},
+	onMouseOver: function()
+	{
+		console.log("mouse over cube: " + this.model.get('position'));
 	}
 });

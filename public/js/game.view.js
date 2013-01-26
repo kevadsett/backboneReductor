@@ -215,12 +215,10 @@ $(document).ready(function(e)
 					var mouseX = (event.clientX / window.innerWidth)*2-1;
 					var mouseY = -(event.clientY /window.innerHeight)*2+1;
 
-					var directionVector = new THREE.Vector3(mouseX, mouseY, 1);
-					this.projector.unprojectVector(directionVector, this.camera);
-					directionVector.sub(this.camera.position);
-					directionVector.normalize();
+					var vector = new THREE.Vector3(mouseX, mouseY, 0.5);
+					this.projector.unprojectVector(vector, this.camera);
 
-					var raycaster = new THREE.Raycaster(this.camera.position, directionVector);
+					var raycaster = new THREE.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());
 					var intersects = raycaster.intersectObjects(this.cubeViews);
 
 					return intersects;
@@ -234,5 +232,17 @@ $(document).ready(function(e)
 		var gameModel = new GameModel(data);
 		console.log(data);
 		var gameView = new GameView({model:gameModel});
+		//console.log(data);
+		/*$('#key1').css({
+			'background-color': data.colours[0],
+			'color': data.textColours[0]
+		});
+		$('#keyText1').html(data.playerCubes[0]);
+
+		$('#key2').css({
+			'background-color': data.colours[1],
+			'color': data.textColours[1]
+		})
+		$('#keyText2').html(data.playerCubes[0]);*/
 	});
 });

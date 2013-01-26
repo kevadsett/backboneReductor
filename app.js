@@ -49,7 +49,7 @@ app.get('/', function (req, res) {
 });
 
 var GameModel = require('./public/js/game.model.backbone');
-var gameModel = new GameModel({size:10});
+var gameModel = new GameModel({size:5});
 console.log("Created new game model");
 console.log(gameModel.get('playerCubes'));
 console.log("|----------------------------------------------|");

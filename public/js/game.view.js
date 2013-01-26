@@ -108,6 +108,18 @@ $(document).ready(function(e)
 				this.lastTime = timeNow;
 				this.renderer.render(this.scene, this.camera);
 
+				$('#key1').css({
+					'background-color': this.model.get('colours')[0],
+					'color': this.model.get('textColours')[0]
+				});
+				$('#keyText1').html(this.model.get('playerCubes')[0].length);
+
+				$('#key2').css({
+					'background-color': this.model.get('colours')[1],
+					'color': this.model.get('textColours')[1]
+				})
+				$('#keyText2').html(this.model.get('playerCubes')[1].length);
+
 				window.requestAnimationFrame(this.render);
 			},
 

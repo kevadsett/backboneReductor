@@ -49,20 +49,20 @@ app.get('/', function (req, res) {
 });
 
 var Lobby = require('./lobby.collection');
-var lobby = new Lobby({gameSize:2});
+var lobby = new Lobby();
 var clients = [];
 
 io.sockets.on('connection', function (socket) {
+	console.log("new client: " + socket.id);
 	lobby.getGame();
-	//var game = lobby.returnedGame;
-	//game.addPlayer();
+	var game = lobby.returnedGame;
+	console.log(game);
+	game.addPlayer();
 	clients.push(socket);
-	//console.log("new client: " + socket.id);
-	//console.log(game);
-	//socket.emit('connected', game);
+	socket.emit('connected', game);
 	socket.on('disconnect', function(){
 		console.log(socket.id + " has disconnected");
 		clients.splice(clients.indexOf(socket), 1);
-		//game.removePlayer();
+		game.removePlayer();
 	})
 });

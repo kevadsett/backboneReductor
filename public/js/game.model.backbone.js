@@ -16,6 +16,7 @@ var perlin = new Perlin();
 
 var GameModel = Backbone.Model.extend({
 	initialize: function(params){
+		console.log("|------------------------ initialising new game model ------------------------|");
 		this.set({cubes: new Cubes()});
 		this.set({colours: [utils.getRandomColor(), utils.getRandomColor()]});
 		console.log("this.get('cubes').length: " + this.get('cubes').length);
@@ -62,25 +63,21 @@ var GameModel = Backbone.Model.extend({
 		playerCubes[0] = new Cubes();
 		playerCubes[1] = new Cubes();
 		var leftToPopulate = this.get('cubes').length;
+		var positionChoices = [this.get('cubes').length];
 		var colourChoice = 0;
+		for(var i = 0; i < this.get('cubes').length; i++)
+		{
+			positionChoices[i] = this.get('cubes').at(i).get('position');
+		}
+
 		while (leftToPopulate > 0)
 		{
 			console.log("leftToPopulate: " + leftToPopulate);
-			var positionSelection = Math.floor(Math.random() * this.get('cubes').length);
-			var cubePositionSet = this.get('cubes').at(positionSelection).get('positionSet');
-			console.log(this.get('cubes').at(positionSelection) + ": cubePositionSet: " + cubePositionSet);
-			var testIndex = 0;
-			while(cubePositionSet && testIndex < leftToPopulate)
-			{
-				testIndex++;
-				positionSelection = Math.floor(Math.random() * this.get('cubes').length);
-				cubePositionSet = this.get('cubes').at(positionSelection).get('positionSet');
-				//console.log(this.get('cubes').at(positionSelection) + ": cubePositionSet: " + cubePositionSet);
-			}
-			this.get('cubes').at(positionSelection).set({positionSet:true});
-			var cubePosition = this.get('cubes').at(positionSelection).get('position');
+			var positionSelection = Math.floor(Math.random() * positionChoices.length);
+			var cubePosition = positionChoices[positionSelection];
+			positionChoices.splice(positionSelection, 1);
 			var cubeColour = this.get('colours')[colourChoice];
-			//console.log("Adding player " + (colourChoice + 1) + " cube, (colour: " + cubeColour + ") to position [" + cubePosition.get('x') + ", " + cubePosition.get('y') + ", " + cubePosition.get('z') + "]");
+			console.log("Adding player " + (colourChoice + 1) + " cube, (colour: " + cubeColour + ") to position [" + cubePosition.get('x') + ", " + cubePosition.get('y') + ", " + cubePosition.get('z') + "]");
 			playerCubes[colourChoice].add(new Cube({position:cubePosition , colour:cubeColour}));
 			leftToPopulate--;
 			colourChoice = (colourChoice + 1) % 2;

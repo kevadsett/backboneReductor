@@ -7,7 +7,7 @@ var Lobby = Backbone.Collection.extend({
 	initialize: function(params){
 		//this.length = 0;
 		console.log("initialising lobby");
-		this.gameSize = 2;
+		this.gameSize = 10;
 
 		//console.log("this.models");
 		//console.log(this.models.attributes);

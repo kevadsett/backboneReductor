@@ -7,7 +7,7 @@ function Utils(){
 }
 
 Utils.prototype.normalise = function(value, low, high)
-{		
+{
 	var range = high - low;
 	return (value - low) / range;
 }
@@ -93,13 +93,13 @@ Utils.prototype.UintToHexString = function(uint)
 }
 
 Utils.prototype.UintToRGB = function(uint)
-{		
+{
 	var rgb = [];
-	
+
 	var r = uint >> 16 & 0xFF;
 	var g = uint >> 8 & 0xFF;
 	var b = uint & 0xFF;
-	
+
 	rgb.push(r, g, b);
 	return rgb;
 }
@@ -113,22 +113,20 @@ Utils.prototype.DetermineBrightness = function(colour)
 	return brightness;
 }
 
-Utils.prototype.getCubeIndexFromVector = function(x, y, z)
+Utils.prototype.cubeExistsAbove = function(x, y, z, cubes)
 {
-	for (i in cubes) 
-	{
-		if(cubePositions[i].x == x && cubePositions[i].y == y && cubePositions[i].z == z)
+	for(var i in cubes.models){
+		var cube = cubes.at(i);
+		var cubePosition = cube.attributes.position.attributes;
+		var _x = cubePosition.x;
+		var _y = cubePosition.y;
+		var _z = cubePosition.z;
+		if(_x == x && _y == y+1 && _z == z)
 		{
-			return i;
+			return true;
 		}
 	}
-	return -1;
-}
-
-Utils.prototype.cubeExistsAbove = function(x, y, z)
-{
-	var cubeAboveIndex = this.getCubeIndexFromVector(x, y+1, z);
-	return (cubeAboveIndex != -1);
+	return false;
 }
 
 if(server) module.exports = Utils;

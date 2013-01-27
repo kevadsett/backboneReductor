@@ -110,15 +110,18 @@ var GameModel = Backbone.Model.extend({
 			var currentPosition = this.get('playerCubes')[playerToRemove].at(i).get('position');
 			//console.log(currentPosition.attributes);
 			var xIsBetter = Math.abs(currentPosition.get('x')) < Math.abs(topPosition.get('x'));
-			//console.log("xIsBetter: " + xIsBetter);
+			console.log("xIsBetter: " + xIsBetter);
 			var yIsBetter = currentPosition.get('y') > topPosition.get('y');
-			//console.log("yIsBetter: " + yIsBetter);
+			console.log("yIsBetter: " + yIsBetter);
 			var zIsBetter = Math.abs(currentPosition.get('z')) < Math.abs(topPosition.get('z'));
-			//console.log("zIsBetter: " + zIsBetter);
+			console.log("zIsBetter: " + zIsBetter);
+			var cubeExistsAbove = utils.cubeExistsAbove(currentPosition.get('x'), currentPosition.get('y'), currentPosition.get('z'), this.get('cubes'));
+			console.log("cubeExistsAbove: " + cubeExistsAbove);
 			var cubeScore = 0;
 			if(xIsBetter) cubeScore++;
 			if(yIsBetter) cubeScore+=2;
 			if(zIsBetter) cubeScore++;
+			if(cubeExistsAbove) cubeScore -= 10;
 			//console.log("cubeScore: " + cubeScore);
 			//console.log("topScore: " + topScore);
 			if(cubeScore >= topScore)

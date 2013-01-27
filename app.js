@@ -56,7 +56,6 @@ io.sockets.on('connection', function (socket) {
 	console.log("new client: " + socket.id);
 	lobby.getGame();
 	var game = lobby.returnedGame;
-	console.log(game);
 	game.addPlayer();
 	clients.push(socket);
 	socket.emit('connected', game);
@@ -64,5 +63,9 @@ io.sockets.on('connection', function (socket) {
 		console.log(socket.id + " has disconnected");
 		clients.splice(clients.indexOf(socket), 1);
 		game.removePlayer();
+		if(game.connectedPlayers == 0)
+		{
+			lobby.remove(game);
+		}
 	})
 });

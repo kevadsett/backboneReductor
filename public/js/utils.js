@@ -23,6 +23,18 @@ Utils.prototype.dist = function(x1, y1, x2, y2) // Pythag! :D
 	return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }
 
+Utils.prototype.getTwoDifferentColours = function(){
+	console.log("Utils::getTwoDifferentColours");
+	var colour1 = this.getRandomColor();
+	colour1 = this.getRGBArray(colour1);
+	console.log(colour1);
+	var colour2 = [(colour1[0] + 128)%256, (colour1[1] + 128)%256, (colour1[2] + 128)%256];
+	console.log(colour2);
+	colour1 = this.RGBToHexString(colour1);
+	colour2 = this.RGBToHexString(colour2);
+	return [colour1, colour2];
+}
+
 Utils.prototype.getRandomColor = function() {
     var letters = '0123456789ABCDEF'.split('');
     var color = '#';
@@ -30,6 +42,22 @@ Utils.prototype.getRandomColor = function() {
         color += letters[Math.round(Math.random() * 15)];
     }
     return color;
+}
+
+Utils.prototype.getRGBArray = function(hex)
+{
+	// strip the leading # if it's there
+	hex = this.stripHexHash(hex);
+
+	// convert 3 char codes --> 6, e.g. `E0F` --> `EE00FF`
+	if(hex.length == 3){
+		hex = hex.replace(/(.)/g, '$1$1');
+	}
+
+	var r = parseInt(hex.substr(0, 2), 16),
+		g = parseInt(hex.substr(2, 2), 16),
+		b = parseInt(hex.substr(4, 2), 16);
+	return [r,g,b];
 }
 
 Utils.prototype.stripHexHash = function(hex)
@@ -102,6 +130,22 @@ Utils.prototype.UintToRGB = function(uint)
 
 	rgb.push(r, g, b);
 	return rgb;
+}
+
+Utils.prototype.RGBToHexString = function(rgb){
+	var r = rgb[0],
+		g = rgb[1],
+		b = rgb[2];
+	var returnString = '#';
+	for(var i=0; i<rgb.length; i++)
+	{
+		var string = rgb[i].toString(16);
+		if(string.length == 1){
+			string = string.replace(/(.)/g, '$1$1');
+		}
+		returnString += string;
+	}
+	return returnString.toUpperCase();
 }
 
 Utils.prototype.DetermineBrightness = function(colour)

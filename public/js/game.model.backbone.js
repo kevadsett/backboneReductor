@@ -18,7 +18,7 @@ var GameModel = Backbone.Model.extend({
 	initialize: function(params){
 		console.log("|------------------------ initialising new game model ------------------------|");
 		this.set({cubes: new Cubes()});
-		this.set({colours: [utils.getRandomColor(), utils.getRandomColor()]});
+		this.set({colours: utils.getTwoDifferentColours()});
 		console.log("this.get('cubes').length: " + this.get('cubes').length);
 		_.bindAll(this, 'generateLevelData', 'setCubeColours', 'cloneModelFrom', 'shaveTopCubeOff', 'addPlayer', 'removePlayer');
 		if(params.colours){ // client side

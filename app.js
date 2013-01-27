@@ -48,15 +48,21 @@ app.get('/', function (req, res) {
   res.sendfile(__dirname + '/views/index.html');
 });
 
-var GameModel = require('./public/js/game.model.backbone');
-var gameModel = new GameModel({size:10});
-console.log("Created new game model");
-console.log(gameModel.get('playerCubes'));
-console.log("|----------------------------------------------|");
+var Lobby = require('./lobby.collection');
+var lobby = new Lobby({gameSize:2});
 var clients = [];
 
 io.sockets.on('connection', function (socket) {
+	lobby.getGame();
+	//var game = lobby.returnedGame;
+	//game.addPlayer();
 	clients.push(socket);
-	console.log("new client: " + socket.id);
-	socket.emit('connected', gameModel);
+	//console.log("new client: " + socket.id);
+	//console.log(game);
+	//socket.emit('connected', game);
+	socket.on('disconnect', function(){
+		console.log(socket.id + " has disconnected");
+		clients.splice(clients.indexOf(socket), 1);
+		//game.removePlayer();
+	})
 });

@@ -15,12 +15,9 @@ var perlin = new Perlin();
 
 var Cubes = Backbone.Collection.extend({
 	model:CubeModel,
-	defaults:{
-		cubePositions: [],
-		cubeColours: []
-	},
 	initialize: function(){
 		_.bindAll(this, 'addCube');
+		this.models = [];
 	},
 	addCube: function(params){
 		var position = params.position;

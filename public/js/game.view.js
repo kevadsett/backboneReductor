@@ -43,7 +43,7 @@ $(document).ready(function(e)
 					{
 						var cubeModel = playerCubes[i].models[j];
 						var cubeView = new CubeView({model: cubeModel, scene: this.scene});
-						this.cubeViews.push(cubeView);
+						this.cubeViews.push(cubeView.mesh);
 					}
 				}
 			},
@@ -151,9 +151,14 @@ $(document).ready(function(e)
 							}
 							this.INTERSECTED = intersects[0].object;
 
+							var cubeCollection = this.model.get('cubes');
+
+							var intersectedIndex = this.cubeViews.indexOf(this.INTERSECTED);
+							var intersectedModel = cubeCollection.models[intersectedIndex];
+
 							this.INTERSECTED.currentHex = utils.UintToHexString(this.INTERSECTED.material.color.getHex());
-							this.INTERSECTED.colourIndex = this.colours.indexOf(this.INTERSECTED.currentHex);
-							if(utils.cubeIsSelectable(this.INTERSECTED))
+							this.INTERSECTED.colourIndex = this.model.get('colours').indexOf(this.INTERSECTED.currentHex);
+							if(utils.cubeIsSelectable(intersectedModel, cubeCollection, this.playerNumber, this.model.get('colours')))
 							{
 								this.INTERSECTED.selectable = true;
 								var brighterColour = utils.increaseBrightness(this.INTERSECTED.currentHex, 40);
@@ -229,20 +234,7 @@ $(document).ready(function(e)
 
 		});
 
-		var gameModel = new GameModel(data);
-		console.log(data);
-		var gameView = new GameView({model:gameModel});
-		//console.log(data);
-		/*$('#key1').css({
-			'background-color': data.colours[0],
-			'color': data.textColours[0]
-		});
-		$('#keyText1').html(data.playerCubes[0]);
-
-		$('#key2').css({
-			'background-color': data.colours[1],
-			'color': data.textColours[1]
-		})
-		$('#keyText2').html(data.playerCubes[0]);*/
+		var gameModel = new GameModel(data.game);
+		var gameView = new GameView({model:gameModel, playerNumber: data.playerNumber});
 	});
 });

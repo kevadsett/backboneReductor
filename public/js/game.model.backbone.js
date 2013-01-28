@@ -67,18 +67,18 @@ var GameModel = Backbone.Model.extend({
 		var colourChoice = 0;
 		for(var i = 0; i < this.get('cubes').length; i++)
 		{
-			positionChoices[i] = this.get('cubes').at(i).get('position');
+			positionChoices[i] = this.get('cubes').at(i);
 		}
 
 		while (leftToPopulate > 0)
 		{
 			console.log("leftToPopulate: " + leftToPopulate);
 			var positionSelection = Math.floor(Math.random() * positionChoices.length);
-			var cubePosition = positionChoices[positionSelection];
+			var cube = positionChoices[positionSelection];
 			positionChoices.splice(positionSelection, 1);
 			var cubeColour = this.get('colours')[colourChoice];
-			console.log("Adding player " + (colourChoice + 1) + " cube, (colour: " + cubeColour + ") to position [" + cubePosition.get('x') + ", " + cubePosition.get('y') + ", " + cubePosition.get('z') + "]");
-			playerCubes[colourChoice].add(new Cube({position:cubePosition , colour:cubeColour}));
+			cube.set({colour:cubeColour});
+			playerCubes[colourChoice].add(cube);
 			leftToPopulate--;
 			colourChoice = (colourChoice + 1) % 2;
 		}
@@ -140,6 +140,7 @@ var GameModel = Backbone.Model.extend({
 			height: model.height,
 			width: model.width,
 			depth: model.depth,
+			cubes:model.cubes,
 			playerCubes: model.playerCubes,
 			colours: model.colours,
 			textColours: model.textColours

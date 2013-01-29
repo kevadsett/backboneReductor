@@ -230,8 +230,14 @@ $(document).ready(function(e)
 			{
 				var cubeIndex = this.cubeViews.indexOf(cube);
 				var cubeModel = this.model.get('cubes').models[cubeIndex];
-				var position = cubeModel.get('position');
-				if(utils.cubeExistsAbove(position.get('x'), position.get('y'), position.get('z'), this.model.get('cubes'));
+				var position = cubeModel.position;
+				if(utils.cubeExistsAbove(position.x, position.y, position.z, this.model.get('cubes'))){
+					return false;
+				}
+				if(cubeModel.get('colour') != this.model.get('colours')[this.playerNumber]){
+					return false;
+				}
+				return true;
 			}
 
 

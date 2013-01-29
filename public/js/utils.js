@@ -160,8 +160,15 @@ Utils.prototype.DetermineBrightness = function(colour)
 Utils.prototype.cubeExistsAbove = function(x, y, z, cubes)
 {
 	for(var i in cubes.models){
-		var cube = cubes.at(i);
-		var cubePosition = cube.attributes.position.attributes;
+		var cube = cubes.models[i];
+		if(cube.attributes)
+		{
+			cubePosition = cube.attributes.position.attributes;
+		}
+		else
+		{
+			cubePosition = cube.position;
+		}
 		var _x = cubePosition.x;
 		var _y = cubePosition.y;
 		var _z = cubePosition.z;

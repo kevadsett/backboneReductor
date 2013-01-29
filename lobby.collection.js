@@ -5,7 +5,7 @@ GameModel = require('./public/js/game.model.backbone');
 var Lobby = Backbone.Collection.extend({
 	initialize: function(params){
 		console.log("initialising lobby");
-		this.gameSize = 10;
+		this.gameSize = 9;
 		console.log("initialised lobby");
 		//_.bindAll(this, 'getGame');
 	},

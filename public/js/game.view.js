@@ -151,14 +151,9 @@ $(document).ready(function(e)
 							}
 							this.INTERSECTED = intersects[0].object;
 
-							var cubeCollection = this.model.get('cubes');
-
-							var intersectedIndex = this.cubeViews.indexOf(this.INTERSECTED);
-							var intersectedModel = cubeCollection.models[intersectedIndex];
-
 							this.INTERSECTED.currentHex = utils.UintToHexString(this.INTERSECTED.material.color.getHex());
 							this.INTERSECTED.colourIndex = this.model.get('colours').indexOf(this.INTERSECTED.currentHex);
-							if(utils.cubeIsSelectable(intersectedModel, cubeCollection, this.playerNumber, this.model.get('colours')))
+							if(this.cubeIsSelectable(this.INTERSECTED))
 							{
 								this.INTERSECTED.selectable = true;
 								var brighterColour = utils.increaseBrightness(this.INTERSECTED.currentHex, 40);
@@ -229,6 +224,14 @@ $(document).ready(function(e)
 					return intersects;
 				}
 				return null;
+			},
+
+			cubeIsSelectable: function(cube)
+			{
+				var cubeIndex = this.cubeViews.indexOf(cube);
+				var cubeModel = this.model.get('cubes').models[cubeIndex];
+				var position = cubeModel.get('position');
+				if(utils.cubeExistsAbove(position.get('x'), position.get('y'), position.get('z'), this.model.get('cubes'));
 			}
 
 

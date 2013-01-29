@@ -173,13 +173,4 @@ Utils.prototype.cubeExistsAbove = function(x, y, z, cubes)
 	return false;
 }
 
-Utils.prototype.cubeIsSelectable = function(cubeModel, cubes, player, colours)
-{
-	console.log("cubeIsSelectable");
-	console.log(cubeModel);
-	console.log(cubes);
-	console.log(player);
-	console.log(colours);
-}
-
 if(server) module.exports = Utils;

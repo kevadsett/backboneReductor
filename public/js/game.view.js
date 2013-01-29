@@ -28,12 +28,15 @@ $(document).ready(function(e)
 				var cameraDistance = Math.max(this.model.get('width'), this.model.get('height'), this.model.get('depth')) + 5;
 				this.camera.position.set(cameraDistance, cameraDistance, cameraDistance);
 				this.camera.lookAt(this.scene.position);
-				_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'onMouseDown', 'getIntersects', 'onKeyDown', 'getCubeIndexByPosition');
+				_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'onMouseDown', 'getIntersects', 'onKeyDown', 'getCubeIndexByPosition', 'getCubeViewByPosition', 'modelChanged');
+
 				this.setupRenderer();
 				this.resizeCanvas();
 				this.initialiseCubeViews();
 				this.createLights()
 				this.render();
+
+				this.model.bind('cubeRemoved', this.modelChanged);
 			},
 
 			initialiseCubeViews: function(){
@@ -184,7 +187,9 @@ $(document).ready(function(e)
 				if (this.INTERSECTED) {
 					if(this.INTERSECTED.selectable)
 					{
-						var intersectedCubeModel = this.getCubeIndexByPosition(this.INTERSECTED.position.x, this.INTERSECTED.position.y, this.INTERSECTED.position.z);
+						var intersectedCubeIndex = this.getCubeIndexByPosition(this.INTERSECTED.position.x, this.INTERSECTED.position.y, this.INTERSECTED.position.z);
+						var cubes = this.model.get('cubes');
+						var intersectedCubeModel =cubes.models[intersectedCubeIndex];
 						this.model.removeCube(intersectedCubeModel);
 						this.INTERSECTED = null;
 					}
@@ -256,6 +261,17 @@ $(document).ready(function(e)
 					}
 				}
 			},
+			
+			getCubeViewByPosition: function(x, y, z){
+				for(var i=0; i<this.cubeViews.length; i++)
+				{
+					var position = this.cubeViews[i].position;
+					if (position.x == x && position.y == y && position.z == z)
+					{
+						return {index: i, cubeView: this.cubeViews[i]};
+					}
+				}
+			},
 
 			cubeIsSelectable: function(cube)
 			{
@@ -271,6 +287,19 @@ $(document).ready(function(e)
 					return false;
 				}
 				return true;
+			},
+
+			modelChanged: function(cubeRemoved)
+			{
+				var position = cubeRemoved.position;
+				var cubeViewData = this.getCubeViewByPosition(position.x, position.y, position.z);
+				var i = cubeViewData.i;
+				var cube = cubeViewData.cubeView;
+				this.scene.remove(cube);
+				//this.model.splice(i, 1);
+				//var cube = this.cubeViews(i);
+				this.cubeViews.splice(i, 1);
+				this.render();
 			}
 
 

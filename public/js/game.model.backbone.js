@@ -171,6 +171,8 @@ var GameModel = Backbone.Model.extend({
 		}else{
 			cubes.models.splice(cubes.models.indexOf(cubeModel), 1);
 		}
+		console.log(cubeModel);
+		this.trigger('cubeRemoved', cubeModel);
 	}
 });
 

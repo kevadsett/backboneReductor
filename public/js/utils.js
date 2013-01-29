@@ -24,12 +24,9 @@ Utils.prototype.dist = function(x1, y1, x2, y2) // Pythag! :D
 }
 
 Utils.prototype.getTwoDifferentColours = function(){
-	console.log("Utils::getTwoDifferentColours");
 	var colour1 = this.getRandomColor();
 	colour1 = this.getRGBArray(colour1);
-	console.log(colour1);
 	var colour2 = [(colour1[0] + 128)%256, (colour1[1] + 128)%256, (colour1[2] + 128)%256];
-	console.log(colour2);
 	colour1 = this.RGBToHexString(colour1);
 	colour2 = this.RGBToHexString(colour2);
 	return [colour1, colour2];
@@ -159,9 +156,10 @@ Utils.prototype.DetermineBrightness = function(colour)
 
 Utils.prototype.cubeExistsAbove = function(x, y, z, cubes)
 {
+	//console.log("looking for cube above [" + x + ", " + y + ", " + z + "]");
 	for(var i in cubes.models){
 		var cube = cubes.models[i];
-		if(cube.attributes)
+		if(server)
 		{
 			cubePosition = cube.attributes.position.attributes;
 		}
@@ -169,9 +167,7 @@ Utils.prototype.cubeExistsAbove = function(x, y, z, cubes)
 		{
 			cubePosition = cube.position;
 		}
-		var _x = cubePosition.x;
-		var _y = cubePosition.y;
-		var _z = cubePosition.z;
+		var _x = cubePosition.x, _y = cubePosition.y, _z = cubePosition.z;
 		if(_x == x && _y == y+1 && _z == z)
 		{
 			return true;

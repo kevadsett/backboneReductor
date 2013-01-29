@@ -23,11 +23,12 @@ $(document).ready(function(e)
 				this.RIGHT = 1;
 				this.lastTime = 0;
 				this.cubeViews = [];
+				this.playerNumber = params.playerNumber;
 
 				var cameraDistance = Math.max(this.model.get('width'), this.model.get('height'), this.model.get('depth')) + 5;
 				this.camera.position.set(cameraDistance, cameraDistance, cameraDistance);
 				this.camera.lookAt(this.scene.position);
-				_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'getIntersects', 'onKeyDown');
+				_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'onMouseDown', 'getIntersects', 'onKeyDown', 'getCubeIndexByPosition');
 				this.setupRenderer();
 				this.resizeCanvas();
 				this.initialiseCubeViews();
@@ -67,7 +68,7 @@ $(document).ready(function(e)
 				this.renderer.setClearColorHex( 0xEEEEEE, 1 );
 				this.renderer.domElement.addEventListener( 'mousemove', this.onMouseMoved, false );
 				$(document).keydown(this.onKeyDown);
-				/*this.renderer.domElement.addEventListener( 'mousedown', this.onDocumentMouseDown, false );*/
+				this.renderer.domElement.addEventListener( 'mousedown', this.onMouseDown, false );
 				window.addEventListener( 'resize', this.resizeCanvas, false );
 				$('body').append(this.renderer.domElement);
 			},
@@ -105,18 +106,19 @@ $(document).ready(function(e)
 				}
 				this.lastTime = timeNow;
 				this.renderer.render(this.scene, this.camera);
-
+				var myKeyNumber = this.playerNumber;
+				var otherKeyNumber = (this.playerNumber + 1) % 2;
 				$('#key1').css({
-					'background-color': this.model.get('colours')[0],
-					'color': this.model.get('textColours')[0]
+					'background-color': this.model.get('colours')[myKeyNumber],
+					'color': this.model.get('textColours')[myKeyNumber]
 				});
-				$('#keyText1').html(this.model.get('playerCubes')[0].length);
+				$('#keyText1').html(this.model.get('playerCubes')[myKeyNumber].length);
 
 				$('#key2').css({
-					'background-color': this.model.get('colours')[1],
-					'color': this.model.get('textColours')[1]
+					'background-color': this.model.get('colours')[otherKeyNumber],
+					'color': this.model.get('textColours')[otherKeyNumber]
 				})
-				$('#keyText2').html(this.model.get('playerCubes')[1].length);
+				$('#keyText2').html(this.model.get('playerCubes')[otherKeyNumber].length);
 
 				if(this.moving) window.requestAnimationFrame(this.render);
 			},
@@ -148,28 +150,44 @@ $(document).ready(function(e)
 							if(this.INTERSECTED)
 							{
 								this.INTERSECTED.material.color.setHex(utils.HexStringToUint(this.INTERSECTED.currentHex));
+								this.render();
 							}
 							this.INTERSECTED = intersects[0].object;
-
 							this.INTERSECTED.currentHex = utils.UintToHexString(this.INTERSECTED.material.color.getHex());
 							this.INTERSECTED.colourIndex = this.model.get('colours').indexOf(this.INTERSECTED.currentHex);
 							if(this.cubeIsSelectable(this.INTERSECTED))
 							{
 								this.INTERSECTED.selectable = true;
-								var brighterColour = utils.increaseBrightness(this.INTERSECTED.currentHex, 40);
-								this.INTERSECTED.material.color.setHex(utils.HexStringToUint(brighterColour));
+								//var brighterColour = utils.increaseBrightness(this.INTERSECTED.currentHex, 40);
+								//this.INTERSECTED.material.color.setHex(utils.HexStringToUint(brighterColour));
+								this.INTERSECTED.material.color.setHex(0xFFFFFF);
+								this.render();
 							}
 						}
 					}
-				}
 				else
-				{
-					if(this.INTERSECTED)
 					{
-						this.INTERSECTED.material.color.setHex(utils.HexStringToUint(this.INTERSECTED.currentHex));
-					}
+						if(this.INTERSECTED)
+						{
+							this.INTERSECTED.material.color.setHex(utils.HexStringToUint(this.INTERSECTED.currentHex));
+							this.render();
+						}
 
-					this.INTERSECTED = null;
+						this.INTERSECTED = null;
+					}
+				}
+				
+			},
+			onMouseDown: function(event)
+			{
+				event.preventDefault();
+				if (this.INTERSECTED) {
+					if(this.INTERSECTED.selectable)
+					{
+						var intersectedCubeModel = this.getCubeIndexByPosition(this.INTERSECTED.position.x, this.INTERSECTED.position.y, this.INTERSECTED.position.z);
+						this.model.removeCube(intersectedCubeModel);
+						this.INTERSECTED = null;
+					}
 				}
 			},
 
@@ -226,15 +244,30 @@ $(document).ready(function(e)
 				return null;
 			},
 
+			getCubeIndexByPosition: function(x, y, z){
+				var cubes = this.model.get('cubes');
+				for(var i=0; i<cubes.length; i++)
+				{
+					var cube = cubes.models[i];
+					var position = cube.position;
+					if(position.x == x && position.y == y && position.z == z)
+					{
+						return i;
+					}
+				}
+			},
+
 			cubeIsSelectable: function(cube)
 			{
-				var cubeIndex = this.cubeViews.indexOf(cube);
+				var position = cube.position;
+				var cubes = this.model.get('cubes');
+				var cubeIndex = this.getCubeIndexByPosition(position.x, position.y, position.z);
 				var cubeModel = this.model.get('cubes').models[cubeIndex];
-				var position = cubeModel.position;
-				if(utils.cubeExistsAbove(position.x, position.y, position.z, this.model.get('cubes'))){
+				var targetColour = this.model.get('colours')[this.playerNumber];
+				if(cubeModel.colour != targetColour){
 					return false;
 				}
-				if(cubeModel.get('colour') != this.model.get('colours')[this.playerNumber]){
+				if(utils.cubeExistsAbove(position.x, position.y, position.z, this.model.get('cubes'))){
 					return false;
 				}
 				return true;

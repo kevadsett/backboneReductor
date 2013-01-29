@@ -20,7 +20,7 @@ var GameModel = Backbone.Model.extend({
 		this.set({cubes: new Cubes()});
 		this.set({colours: utils.getTwoDifferentColours()});
 		console.log("this.get('cubes').length: " + this.get('cubes').length);
-		_.bindAll(this, 'generateLevelData', 'setCubeColours', 'cloneModelFrom', 'shaveTopCubeOff', 'addPlayer', 'removePlayer');
+		_.bindAll(this, 'generateLevelData', 'setCubeColours', 'cloneModelFrom', 'shaveTopCubeOff', 'addPlayer', 'removePlayer', 'removeCube');
 		if(params.colours){ // client side
 			console.log("Cloning model");
 			this.cloneModelFrom(params)
@@ -31,24 +31,31 @@ var GameModel = Backbone.Model.extend({
 			this.generateLevelData();
 			this.setCubeColours();
 		}
+		console.log(this.get('colours'));
 	},
 	generateLevelData: function(){
 		var width = this.get('width')
 		,	height = this.get('height')
-		,	depth = this.get('depth');
+		,	depth = this.get('depth')
+		,	halfWidth = Math.floor(width/2)
+		,	halfDepth = Math.floor(depth/2);
+		console.log("halfWidth: " + halfWidth);
+		console.log("halfDepth: " + halfDepth);
 		console.log("Generating level data.");
 		perlin.setupPerlin(width, depth);
 		var heightMap = perlin.generatePerlinMountainMap(height);
 		var colourChoice = 0;
 		for(var i=0; i<width; i++) {
 			for(var j = 0; j<depth; j++) {
-				var newPosition = new Vector3D({x: i - (width/2), y:heightMap[i][j], z:j - (depth/2)});
+				//var newPosition = new Vector3D({x: i - (width/2), y:heightMap[i][j], z:j - (depth/2)});
+				var newPosition = new Vector3D({x: i - halfWidth , y:heightMap[i][j], z:j - halfDepth});
 				this.get('cubes').addCube({position: newPosition});
 				if(heightMap[i][j] != 0) {
 					var currentHeight = heightMap[i][j];
 					while (currentHeight != 0) {
 						currentHeight--;
-						var newSubPosition = new Vector3D({x:i - (width/2), y:currentHeight, z:j - (depth/2)})
+						//var newSubPosition = new Vector3D({x:i - (width/2), y:currentHeight, z:j - (depth/2)})
+						var newSubPosition = new Vector3D({x:i - halfWidth, y:currentHeight, z:j - halfDepth})
 						this.get('cubes').addCube({position: newSubPosition});
 					}
 				}
@@ -133,6 +140,7 @@ var GameModel = Backbone.Model.extend({
 		}
 		console.log("Removing cube at position [" + topPosition.get('x') + ", " + topPosition.get('y') + ", " + topPosition.get('z') + "]");
 		this.get('playerCubes')[playerToRemove].remove(topCube);
+		this.get('cubes').remove(topCube);
 	},
 	cloneModelFrom: function(model)
 	{
@@ -154,6 +162,15 @@ var GameModel = Backbone.Model.extend({
 	removePlayer: function()
 	{
 		this.set({connectedPlayers: this.get('connectedPlayers') - 1});
+	},
+	removeCube: function(cubeModel)
+	{
+		var cubes = this.get('cubes');
+		if(server){
+			cubes.remove(cubeModel);
+		}else{
+			cubes.models.splice(cubes.models.indexOf(cubeModel), 1);
+		}
 	}
 });
 

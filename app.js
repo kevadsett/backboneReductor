@@ -59,6 +59,7 @@ io.sockets.on('connection', function (socket) {
 	game.addPlayer();
 	var playerNumber = game.get('connectedPlayers') - 1;
 	clients.push(socket);
+	console.log(game);
 	console.log("playerNumber: " + playerNumber);
 	socket.emit('connected', {game: game, playerNumber:playerNumber});
 	socket.on('disconnect', function(){

@@ -5,9 +5,9 @@ if (typeof exports !== 'undefined') {
 	_ = require('underscore');
 	Utils = require('./utils');
 	Perlin = require('./perlin');
-	models = require('./models');
+	Vectors = require('./Vectors');
 	CubeModel = require('./cube.model.backbone');
-	var Vector3D = models.Vector3D;
+	var Vector3D = Vectors.Vector3D;
 }
 
 var utils = new Utils();

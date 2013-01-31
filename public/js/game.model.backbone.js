@@ -5,10 +5,10 @@ if (typeof exports !== 'undefined') {
 	_ = require('underscore');
 	Utils = require('./utils');
 	Perlin = require('./perlin');
-	models = require('./models');
+	Vectors = require('./Vectors');
 	Cubes = require('./cube.collection.backbone');
 	Cube = require('./cube.model.backbone');
-	var Vector3D = models.Vector3D;
+	var Vector3D = Vectors.Vector3D;
 }
 
 var utils = new Utils();
@@ -16,22 +16,23 @@ var perlin = new Perlin();
 
 var GameModel = Backbone.Model.extend({
 	initialize: function(params){
-		console.log("|------------------------ initialising new game model ------------------------|");
+		console.log("Initialising game model");
 		this.set({cubes: new Cubes()});
 		this.set({colours: utils.getTwoDifferentColours()});
-		console.log("this.get('cubes').length: " + this.get('cubes').length);
-		_.bindAll(this, 'generateLevelData', 'setCubeColours', 'cloneModelFrom', 'shaveTopCubeOff', 'addPlayer', 'removePlayer', 'removeCube');
-		if(params.colours){ // client side
-			console.log("Cloning model");
-			this.cloneModelFrom(params)
-		} else if(params.size){ // server side
+		//console.log("this.get('cubes').length: " + this.get('cubes').length);
+		_.bindAll(this, 'generateLevelData', 'setCubeColours', 'cloneModelFrom', 'shaveTopCubeOff', 'addPlayer', 'removePlayer', 'removeCube', 'toJSON');
+		if(server){
 			console.log("Creating model");
 			this.set({height: params.size, width: params.size, depth: params.size});
 			this.set({textColours: [utils.DetermineBrightness(utils.HexStringToUint(this.get('colours')[0])) < 0.5 ? "#FFFFFF" : "#000000", utils.DetermineBrightness(utils.HexStringToUint(this.get('colours')[1])) < 0.5 ? "#FFFFFF" : "#000000"]});
 			this.generateLevelData();
 			this.setCubeColours();
+			
+		} else {
+			console.log("Cloning model from existing data");
+			this.cloneModelFrom(params);			
 		}
-		console.log(this.get('colours'));
+		//console.log(this.get('colours'));
 	},
 	generateLevelData: function(){
 		var width = this.get('width')
@@ -39,8 +40,8 @@ var GameModel = Backbone.Model.extend({
 		,	depth = this.get('depth')
 		,	halfWidth = Math.floor(width/2)
 		,	halfDepth = Math.floor(depth/2);
-		console.log("halfWidth: " + halfWidth);
-		console.log("halfDepth: " + halfDepth);
+		//console.log("halfWidth: " + halfWidth);
+		//console.log("halfDepth: " + halfDepth);
 		console.log("Generating level data.");
 		perlin.setupPerlin(width, depth);
 		var heightMap = perlin.generatePerlinMountainMap(height);
@@ -66,7 +67,7 @@ var GameModel = Backbone.Model.extend({
 		var playerCubes = new Array(2)
 		,	colours = this.get('colours');
 		console.log("Setting cube colours.");
-		console.log(this.get('cubes').length);
+		//console.log(this.get('cubes').length);
 		playerCubes[0] = new Cubes();
 		playerCubes[1] = new Cubes();
 		var leftToPopulate = this.get('cubes').length;
@@ -79,7 +80,7 @@ var GameModel = Backbone.Model.extend({
 
 		while (leftToPopulate > 0)
 		{
-			console.log("leftToPopulate: " + leftToPopulate);
+			//console.log("leftToPopulate: " + leftToPopulate);
 			var positionSelection = Math.floor(Math.random() * positionChoices.length);
 			var cube = positionChoices[positionSelection];
 			positionChoices.splice(positionSelection, 1);
@@ -117,13 +118,13 @@ var GameModel = Backbone.Model.extend({
 			var currentPosition = this.get('playerCubes')[playerToRemove].at(i).get('position');
 			//console.log(currentPosition.attributes);
 			var xIsBetter = Math.abs(currentPosition.get('x')) < Math.abs(topPosition.get('x'));
-			console.log("xIsBetter: " + xIsBetter);
+			//console.log("xIsBetter: " + xIsBetter);
 			var yIsBetter = currentPosition.get('y') > topPosition.get('y');
-			console.log("yIsBetter: " + yIsBetter);
+			//console.log("yIsBetter: " + yIsBetter);
 			var zIsBetter = Math.abs(currentPosition.get('z')) < Math.abs(topPosition.get('z'));
-			console.log("zIsBetter: " + zIsBetter);
+			//console.log("zIsBetter: " + zIsBetter);
 			var cubeExistsAbove = utils.cubeExistsAbove(currentPosition.get('x'), currentPosition.get('y'), currentPosition.get('z'), this.get('cubes'));
-			console.log("cubeExistsAbove: " + cubeExistsAbove);
+			//console.log("cubeExistsAbove: " + cubeExistsAbove);
 			var cubeScore = 0;
 			if(xIsBetter) cubeScore++;
 			if(yIsBetter) cubeScore+=2;
@@ -173,6 +174,27 @@ var GameModel = Backbone.Model.extend({
 		}
 		console.log(cubeModel);
 		this.trigger('cubeRemoved', cubeModel);
+	},
+	toJSON: function()
+	{
+		var returnObject = {
+			cid: this.cid,
+			attributes: this.attributes,
+			_changing: this._changing,
+			_previousAttributes: this._previousAttributes,
+			changed: this.changed,
+			_pending: this._pending,
+			generateLevelData: this.generateLevelData,
+			setCubeColours: this.setCubeColours,
+			cloneModelFrom: this.cloneModelFrom,
+			shaveTopCubeOff: this.shaveTopCubeOff,
+			addPlayer: this.addPlayer,
+			removePlayer: this.removePlayer,
+			removeCube: this.removeCube,
+			toJSON: this.toJSON//,
+			//collection: this.collection,
+		};
+		return returnObject;
 	}
 });
 

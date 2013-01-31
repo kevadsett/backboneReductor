@@ -304,8 +304,10 @@ $(document).ready(function(e)
 
 
 		});
-
+		
+		console.log(data.game);
 		var gameModel = new GameModel(data.game);
+		console.log(gameModel);
 		var gameView = new GameView({model:gameModel, playerNumber: data.playerNumber});
 	});
 });

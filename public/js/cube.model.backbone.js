@@ -3,8 +3,8 @@ if (typeof exports !== 'undefined') {
 	server = true;
 	Backbone = require('backbone');
 	_ = require('underscore');
-	models = require('./models');
-	Vector3D = models.Vector3D
+	Vectors = require('./Vectors');
+	Vector3D = Vectors.Vector3D
 }
 
 var CubeModel = Backbone.Model.extend({

@@ -10,6 +10,9 @@ var express = require('express'),
 	port = process.env.PORT || 5000,
 	server = http.createServer(app),
 	io = require('socket.io').listen(server, {log: false}),
+	Seed = require('seed'),
+	Vectors = require('./public/js/Vectors'),
+	Utils = require('./public/js/Utils'),
 	Backbone = require('backbone'),
 	_ = require('underscore')._;
 
@@ -48,12 +51,66 @@ app.get('/', function (req, res) {
   res.sendfile(__dirname + '/views/index.html');
 });
 
-var Lobby = require('./lobby.collection');
+/*var Lobby = require('./lobby.collection');
 var lobby = new Lobby();
-var clients = [];
+var clients = [];*/
 
+Cube = Seed.Model.extend('cube', {
+  schema: new Seed.Schema({
+    position: Object,
+    colour: String
+  })
+});
+
+Cubes = Seed.Graph.extend({
+  initialize: function () {
+    this.define(Cube);
+  }
+});
+
+var db = new Cubes()
+  , guid = new Seed.ObjectId();
+  var utils = new Utils();
+for(var i = 0; i < 100; i++)
+{
+	var cube = {position: new Vectors.Vector3D({x:Math.floor(Math.random() * 5), y:Math.floor(Math.random() * 5), z:Math.floor(Math.random() * 5)}), colour: utils.getRandomColor()};
+	db.set('/cube/' + i, cube);
+}
 io.sockets.on('connection', function (socket) {
-	console.log("new client: " + socket.id);
+console.log("client connected");
+	socket.on('cubecollection:read', function (data, callback) {
+		console.log("fetching cubes");
+		var list = [];
+
+		db.each('cube', function (cube) {
+			list.push(cube._attributes);
+		});
+		
+		callback(null, list);
+	});
+
+	socket.on('cubecollection:update', function (data, callback) {
+		var cube = db.get('/cube/' + data.id);
+		cube.set(data);
+
+		var json = cube._attributes;
+
+		socket.emit('cubes/' + data.id + ':update', json);
+		socket.broadcast.emit('cubes/' + data.id + ':update', json);
+		callback(null, json);
+	});
+
+	socket.on('cubecollection:delete', function (data, callback) {
+		var json = db.get('/todo/' + data.id)._attributes;
+
+		db.del('/cube/' + data.id);
+
+		socket.emit('cubes/' + data.id + ':delete', json);
+		socket.broadcast.emit('cubes/' + data.id + ':delete', json);
+		callback(null, json);
+	});
+
+	/*console.log("new client: " + socket.id);
 	lobby.getGame();
 	var game = lobby.returnedGame;
 	game.addPlayer();
@@ -70,5 +127,5 @@ io.sockets.on('connection', function (socket) {
 		{
 			lobby.remove(game);
 		}
-	})
+	})*/
 });

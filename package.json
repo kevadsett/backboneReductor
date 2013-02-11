@@ -1,5 +1,5 @@
 {
-  "name": "application-name",
+  "name": "Reductor",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -8,6 +8,7 @@
   "dependencies": {
     "express": "3.0.6",
     "socket.io": "0.9.13",
+    "seed": "0.1.x",
     "backbone": "0.9.10",
     "underscore": "1.4.3"
   },

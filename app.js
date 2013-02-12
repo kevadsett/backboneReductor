@@ -78,17 +78,6 @@ for(var i = 0; i < 100; i++)
 }
 io.sockets.on('connection', function (socket) {
 console.log("client connected");
-
-	socket.on('cubecollection:create', function (data, callback) {
-		var id = guid.gen()
-			, cube = db.set('/cube/' + id, data)
-			, json = cube._attributes;
-
-		socket.emit('todos:create', json);
-		socket.broadcast.emit('todos:create', json);
-		callback(null, json);
-	});
-
 	socket.on('cubecollection:read', function (data, callback) {
 		console.log("fetching cubes");
 		var list = [];
@@ -106,8 +95,8 @@ console.log("client connected");
 
 		var json = cube._attributes;
 
-		socket.emit('cubecollection/' + data.id + ':update', json);
-		socket.broadcast.emit('cubecollection/' + data.id + ':update', json);
+		socket.emit('cubes/' + data.id + ':update', json);
+		socket.broadcast.emit('cubes/' + data.id + ':update', json);
 		callback(null, json);
 	});
 
@@ -116,8 +105,8 @@ console.log("client connected");
 
 		db.del('/cube/' + data.id);
 
-		socket.emit('cubecollection/' + data.id + ':delete', json);
-		socket.broadcast.emit('cubecollection/' + data.id + ':delete', json);
+		socket.emit('cubes/' + data.id + ':delete', json);
+		socket.broadcast.emit('cubes/' + data.id + ':delete', json);
 		callback(null, json);
 	});
 

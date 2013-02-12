@@ -1,4 +1,8 @@
-socket.on('connected', function(data)
+var socket = io.connect(window.location.hostname);
+
+$(document).ready(function(e)
+{
+	socket.on('connected', function(data)
 	{
 		console.log("Connected to server. Client ID = " + data.id);
 
@@ -305,4 +309,5 @@ socket.on('connected', function(data)
 		var gameModel = new GameModel(data.game);
 		console.log(gameModel);
 		var gameView = new GameView({model:gameModel, playerNumber: data.playerNumber});
-	})
+	});
+});

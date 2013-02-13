@@ -145,14 +145,15 @@ var GameModel = Backbone.Model.extend({
 	},
 	cloneModelFrom: function(model)
 	{
+		console.log("cloning model");
 		this.set({
-			height: model.height,
-			width: model.width,
-			depth: model.depth,
-			cubes:model.cubes,
-			playerCubes: model.playerCubes,
-			colours: model.colours,
-			textColours: model.textColours
+			height: model.attributes.height,
+			width: model.attributes.width,
+			depth: model.attributes.depth,
+			cubes:model.attributes.cubes,
+			playerCubes: model.attributes.playerCubes,
+			colours: model.attributes.colours,
+			textColours: model.attributes.textColours
 		});
 	},
 	addPlayer: function()

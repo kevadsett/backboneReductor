@@ -1,3 +1,5 @@
+Reductor = {};
+Reductor.scene = new THREE.Scene();
 var CubeView = Backbone.View.extend({
 	initialize: function(params){
 		//console.log(params);
@@ -7,7 +9,6 @@ var CubeView = Backbone.View.extend({
 		this.mesh.position.x = this.model.get('position').x;
 		this.mesh.position.y = this.model.get('position').y;
 		this.mesh.position.z = this.model.get('position').z;
-		this.scene = params.scene;
 		_.bindAll(this, 'attributesChanged', 'addToScene', 'removeFromScene');
 		this.bind('change', this.attributesChanged);
 		this.addToScene();
@@ -17,18 +18,17 @@ var CubeView = Backbone.View.extend({
 	},
 	addToScene: function()
 	{
-		this.scene.add(this.mesh);
+		Reductor.scene.add(this.mesh);
 	},
 	removeFromScene: function()
 	{
-		this.scene.remove(this.mesh);
+		Reductor.scene.remove(this.mesh);
 	}
 });
 
 var GameView = Backbone.View.extend({
 	el: $('body'),
 	initialize: function(params){
-		this.scene = new THREE.Scene();
 		this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
 		this.projector = new THREE.Projector();
 		this.targetX = 0;
@@ -44,9 +44,9 @@ var GameView = Backbone.View.extend({
 		this.cubeViews = [];
 		this.playerNumber = params.playerNumber;
 
-		var cameraDistance = Math.max(this.model.get('width'), this.model.get('height'), this.model.get('depth')) + 5;
+		var cameraDistance = this.model.size + 5;
 		this.camera.position.set(cameraDistance, cameraDistance, cameraDistance);
-		this.camera.lookAt(this.scene.position);
+		this.camera.lookAt(Reductor.scene.position);
 		_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'onMouseDown', 'getIntersects', 'onKeyDown', 'getCubeIndexByPosition', 'getCubeViewByPosition', 'modelChanged');
 
 		this.setupRenderer();
@@ -61,24 +61,23 @@ var GameView = Backbone.View.extend({
 	initialiseCubeViews: function(){
 		var self = this;
 		_.each(self.model.models, function(model){
-			console.log(model.attributes);
-			var cubeView = new CubeView({model: model, scene: self.scene});
+			var cubeView = new CubeView({model: model});
 			self.cubeViews.push(cubeView.mesh);
 		});
-		
+
 	},
 
 	createLights: function() {
-		var vec1 = new THREE.Vector3(this.model.get('width'), this.model.get('height'), this.model.get('depth'));
-		var vec2 = new THREE.Vector3(-this.model.get('width'), -this.model.get('height'), -this.model.get('depth'));
+		var vec1 = new THREE.Vector3(this.model.size, this.model.size, this.model.size);
+		var vec2 = new THREE.Vector3(-this.model.size, -this.model.size, -this.model.size);
 
 		var mainLight = new THREE.PointLight(0xFFFFFF, 1);
 		mainLight.position.set(vec1.x, vec1.y, vec1.z);
-		this.scene.add(mainLight);
+		Reductor.scene.add(mainLight);
 
 		var subLight = new THREE.PointLight(0xFFFFFF, 1);
 		subLight.position.set(vec2.x, vec2.y, vec2.z);
-		this.scene.add(subLight);
+		Reductor.scene.add(subLight);
 	},
 
 	setupRenderer: function(){
@@ -119,12 +118,12 @@ var GameView = Backbone.View.extend({
 					this.camera.position.z = this.camZ * Math.cos(this.rotSpeed) - this.camX * Math.sin(this.rotSpeed)/* * elapsed*/;
 				}
 				this.currentAnimFrame++;
-				this.camera.lookAt(this.scene.position);
+				this.camera.lookAt(Reductor.scene.position);
 			}
 
 		}
 		this.lastTime = timeNow;
-		this.renderer.render(this.scene, this.camera);
+		this.renderer.render(Reductor.scene, this.camera);
 		var myKeyNumber = this.playerNumber;
 		var otherKeyNumber = (this.playerNumber + 1) % 2;
 		/*$('#key1').css({
@@ -195,7 +194,7 @@ var GameView = Backbone.View.extend({
 				this.INTERSECTED = null;
 			}
 		}
-		
+
 	},
 	onMouseDown: function(event)
 	{
@@ -277,7 +276,7 @@ var GameView = Backbone.View.extend({
 			}
 		}
 	},
-	
+
 	getCubeViewByPosition: function(x, y, z){
 		for(var i=0; i<this.cubeViews.length; i++)
 		{
@@ -311,7 +310,7 @@ var GameView = Backbone.View.extend({
 		var cubeViewData = this.getCubeViewByPosition(position.x, position.y, position.z);
 		var i = cubeViewData.i;
 		var cube = cubeViewData.cubeView;
-		this.scene.remove(cube);
+		Reductor.scene.remove(cube);
 		//this.model.splice(i, 1);
 		//var cube = this.cubeViews(i);
 		this.cubeViews.splice(i, 1);

@@ -45,10 +45,11 @@ io.configure(function () {
 
 // Routes
 
+var size = 10;
 var cubes = [];
-for(var i = 0; i < 10; i++)
+for(var i = 0; i < 25; i++)
 {
-	var cube = {id: i, position: new Vectors.Vector3D(Math.floor(Math.random() * 5), Math.floor(Math.random() * 5), Math.floor(Math.random() * 5)), colour: utils.getRandomColor()};
+	var cube = {id: i, position: new Vectors.Vector3D(Math.floor(Math.random() * size) - size/2, Math.floor(Math.random() * size), Math.floor(Math.random() * size)- size/2), colour: utils.getRandomColor()};
 	cubes.push(cube);
 }
 
@@ -71,7 +72,7 @@ io.sockets.on('connection', function (client) {
 	clients.push(socket);
 	console.log(game);
 	console.log("playerNumber: " + playerNumber);*/
-	client.emit('connected', {gameModel: cubes, playerNumber:clients.length-1});
+	client.emit('connected', {gameModel: cubes, playerNumber:clients.length-1, gameSize: size});
 	/*socket.on('disconnect', function(){
 		console.log(socket.id + " has disconnected");
 		clients.splice(clients.indexOf(socket), 1);

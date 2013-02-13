@@ -4,7 +4,7 @@ $(document).ready(function(e)
 {
 	socket.on('connected', function(data)
 	{
-		console.log("Connected to server. Client ID = " + data.id);
+		console.log("Connected to server. playerNumber = " + data.playerNumber);
 
 		var GameView = Backbone.View.extend({
 			el: $('body'),
@@ -36,7 +36,7 @@ $(document).ready(function(e)
 				this.createLights()
 				this.render();
 
-				this.model.bind('cubeRemoved', this.modelChanged);
+				//this.model.bind('cubeRemoved', this.modelChanged);
 			},
 
 			initialiseCubeViews: function(){
@@ -111,7 +111,7 @@ $(document).ready(function(e)
 				this.renderer.render(this.scene, this.camera);
 				var myKeyNumber = this.playerNumber;
 				var otherKeyNumber = (this.playerNumber + 1) % 2;
-				$('#key1').css({
+				/*$('#key1').css({
 					'background-color': this.model.get('colours')[myKeyNumber],
 					'color': this.model.get('textColours')[myKeyNumber]
 				});
@@ -121,7 +121,7 @@ $(document).ready(function(e)
 					'background-color': this.model.get('colours')[otherKeyNumber],
 					'color': this.model.get('textColours')[otherKeyNumber]
 				})
-				$('#keyText2').html(this.model.get('playerCubes')[otherKeyNumber].length);
+				$('#keyText2').html(this.model.get('playerCubes')[otherKeyNumber].length);*/
 
 				if(this.moving) window.requestAnimationFrame(this.render);
 			},
@@ -305,9 +305,9 @@ $(document).ready(function(e)
 
 		});
 		
-		console.log(data.game);
-		var gameModel = new GameModel(data.game);
-		console.log(gameModel);
-		var gameView = new GameView({model:gameModel, playerNumber: data.playerNumber});
+		var cubeCollection = new CubeCollection(data.gameModel);
+		//var gameModel = new GameModel(data.game);
+		//console.log(gameModel);
+		var gameView = new GameView({model:cubeCollection});
 	});
 });

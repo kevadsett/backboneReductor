@@ -1,29 +1,17 @@
 var server = false;
 if (typeof exports !== 'undefined') {
 	server = true;
-	Backbone = require('backbone');
-	_ = require('underscore');
 }
-var Vector2D = Backbone.Model.extend({
-	defaults:{
-		x:0,
-		y:0
-	},
-	initialize:function(position){
-		if(position) this.set({x: position.x, y: position.y});
-	}
-});
+var Vector2D = function(x, y) {
+	this.x = x;
+	this.y = y;
+};
 
-var Vector3D = Backbone.Model.extend({
-	defaults:{
-		x:0,
-		y:0,
-		z:0
-	},
-	initialize:function(position){
-		if(position) this.set({x: position.x, y: position.y, z:position.z});
-	}
-});
+var Vector3D = function(x, y, z) {
+	this.x = x;
+	this.y = y;
+	this.z = z;
+};
 
 if(server)
 {

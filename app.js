@@ -9,10 +9,11 @@ var express = require('express'),
 	app = express(),
 	port = process.env.PORT || 5000,
 	server = http.createServer(app),
-	io = require('socket.io').listen(server, {log: false}),
-	Backbone = require('backbone'),
-	_ = require('underscore')._;
+	Vectors = require('./public/js/Vectors'),
+	Utils = require('./public/js/Utils'),
+	io = require('socket.io').listen(server, {log: false});
 
+var utils = new Utils();
 server.listen(port);
 console.log("Express server listening on port %d in %s mode", server.address().port, app.settings.env);
 
@@ -44,25 +45,34 @@ io.configure(function () {
 
 // Routes
 
+var cubes = [];
+for(var i = 0; i < 10; i++)
+{
+	var cube = {id: i, position: new Vectors.Vector3D(Math.floor(Math.random() * 5), Math.floor(Math.random() * 5), Math.floor(Math.random() * 5)), colour: utils.getRandomColor()};
+	cubes.push(cube);
+}
+
 app.get('/', function (req, res) {
   res.sendfile(__dirname + '/views/index.html');
 });
 
-var Lobby = require('./lobby.collection');
-var lobby = new Lobby();
+/*var Lobby = require('./lobby.collection');
+var lobby = new Lobby();*/
 var clients = [];
 
-io.sockets.on('connection', function (socket) {
-	console.log("new client: " + socket.id);
-	lobby.getGame();
+io.sockets.on('connection', function (client) {
+	console.log("new client: " + client.id);
+	clients.push(client);
+	console.log(cubes);
+	/*lobby.getGame();
 	var game = lobby.returnedGame;
 	game.addPlayer();
 	var playerNumber = game.get('connectedPlayers') - 1;
 	clients.push(socket);
 	console.log(game);
-	console.log("playerNumber: " + playerNumber);
-	socket.emit('connected', {game: game, playerNumber:playerNumber});
-	socket.on('disconnect', function(){
+	console.log("playerNumber: " + playerNumber);*/
+	client.emit('connected', {gameModel: cubes, playerNumber:clients.length-1});
+	/*socket.on('disconnect', function(){
 		console.log(socket.id + " has disconnected");
 		clients.splice(clients.indexOf(socket), 1);
 		game.removePlayer();
@@ -70,5 +80,5 @@ io.sockets.on('connection', function (socket) {
 		{
 			lobby.remove(game);
 		}
-	})
+	})*/
 });

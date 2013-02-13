@@ -10,3 +10,7 @@ var CubeModel = Backbone.Model.extend({
 		this.trigger("colourChanged", this.get('colour'));
 	}
 });
+
+var CubeCollection = Backbone.Collection.extend({
+	model:CubeModel
+});

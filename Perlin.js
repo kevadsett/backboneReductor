@@ -1,8 +1,8 @@
 var server = false;
 if (typeof exports !== 'undefined') {
 	server = true;
-	Utils = require('./public/js/utils');
-} 
+	Utils = require('./public/js/Utils');
+}
 
 var utils = new Utils();
 function Perlin(){
@@ -102,10 +102,10 @@ Perlin.prototype.generateSmoothNoise = function(baseNoise, octave)
 	{
 		smoothNoise[i] = new Array(this.columns);
 	}
-	
+
 	var samplePeriod = 1 << octave;
 	var sampleFrequency = 1.0 / samplePeriod;
-	
+
 	for(var i=0; i < this.rows; i++)
 	{
 		// calculate vertical sampling indices
@@ -118,13 +118,13 @@ Perlin.prototype.generateSmoothNoise = function(baseNoise, octave)
 			var sample_j0 = Math.floor(j / samplePeriod) * samplePeriod;
 			var sample_j1 = (sample_j0 + samplePeriod) % this.columns;
 			var horizontalBlend = (j - sample_j0) * sampleFrequency;
-			
-			//console.log("sample_0: " + sample_i0 + ", " + sample_j0 + ". sample_1: " + sample_i1 + ", " + sample_j1);	
-			
+
+			//console.log("sample_0: " + sample_i0 + ", " + sample_j0 + ". sample_1: " + sample_i1 + ", " + sample_j1);
+
 			// blend the top two corners
 			var top = this.lerp(baseNoise[sample_i0][sample_j0], baseNoise[sample_i0][sample_j1], horizontalBlend);
 			var bottom = this.lerp(baseNoise[sample_i1][sample_j0], baseNoise[sample_i1][sample_j1], horizontalBlend);
-			
+
 			// blend the two together
 			smoothNoise[i][j] = this.lerp(top, bottom, verticalBlend);
 		}
@@ -137,7 +137,7 @@ Perlin.prototype.generatePerlinNoise = function(baseNoise, octaveCount)
 	var persistence = 0.5;
 	var amplitude = 1.0;
 	var totalAmplitude = 0.0;
-	
+
 	var smoothNoise = new Array(octaveCount);
 	for (var k=0; k < octaveCount; k++)
 	{
@@ -152,12 +152,12 @@ Perlin.prototype.generatePerlinNoise = function(baseNoise, octaveCount)
 			PerlinNoise[i][j] = 0.0;
 		}
 	}
-	
+
 	for (var k=0; k < octaveCount; k++)
 	{
 		amplitude *= persistence;
 		totalAmplitude += amplitude;
-				
+
 		for (var i=0; i<this.rows; i++)
 		{
 			for (var j=0; j<this.columns; j++)
@@ -166,7 +166,7 @@ Perlin.prototype.generatePerlinNoise = function(baseNoise, octaveCount)
 			}
 		}
 	}
-	
+
 	// normalisation
 	for (var i = 0; i < this.rows; i++)
 	{
@@ -175,7 +175,7 @@ Perlin.prototype.generatePerlinNoise = function(baseNoise, octaveCount)
 			PerlinNoise[i][j] /= totalAmplitude;
 		}
 	}
-	
+
 	return PerlinNoise;
 }
 

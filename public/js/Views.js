@@ -57,7 +57,11 @@ var GameView = Backbone.View.extend({
 		this.createLights()
 		this.render();
 
-		//this.model.bind('cubeRemoved', this.modelChanged);
+		this.model.bind('remove', this.cubeRemoved, this);
+	},
+
+	cubeRemoved: function(options){
+		console.log(options.id);
 	},
 
 	initialiseCubeViews: function(){

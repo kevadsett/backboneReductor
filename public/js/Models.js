@@ -12,5 +12,6 @@ var CubeModel = Backbone.Model.extend({
 });
 
 var CubeCollection = Backbone.Collection.extend({
-	model:CubeModel
+	model:CubeModel,
+
 });

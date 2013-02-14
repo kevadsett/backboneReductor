@@ -1,7 +1,7 @@
 var server = false;
 if (typeof exports !== 'undefined') {
 	server = true;
-	Utils = require('./utils');
+	Utils = require('./public/js/utils');
 } 
 
 var utils = new Utils();

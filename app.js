@@ -45,34 +45,26 @@ io.configure(function () {
 
 // Routes
 
-var size = 10;
-var cubes = [];
-for(var i = 0; i < 25; i++)
-{
-	var cube = {id: i, position: new Vectors.Vector3D(Math.floor(Math.random() * size) - size/2, Math.floor(Math.random() * size), Math.floor(Math.random() * size)- size/2), colour: utils.getRandomColor()};
-	cubes.push(cube);
-}
 
 app.get('/', function (req, res) {
   res.sendfile(__dirname + '/views/index.html');
 });
 
-/*var Lobby = require('./lobby.collection');
-var lobby = new Lobby();*/
+var Lobby = require('./Lobby');
+var lobby = new Lobby();
+lobby.getGame();
 var clients = [];
 
 io.sockets.on('connection', function (client) {
 	console.log("new client: " + client.id);
 	clients.push(client);
-	console.log(cubes);
-	/*lobby.getGame();
-	var game = lobby.returnedGame;
+
+	var game = lobby.getGame();
 	game.addPlayer();
-	var playerNumber = game.get('connectedPlayers') - 1;
-	clients.push(socket);
-	console.log(game);
-	console.log("playerNumber: " + playerNumber);*/
-	client.emit('connected', {gameModel: cubes, playerNumber:clients.length-1, gameSize: size});
+	var playerNumber = game.connectedPlayers - 1;
+
+	client.emit('connected', {gameModel: game.cubes, playerNumber:playerNumber, gameSize: game.size});
+	
 	/*socket.on('disconnect', function(){
 		console.log(socket.id + " has disconnected");
 		clients.splice(clients.indexOf(socket), 1);

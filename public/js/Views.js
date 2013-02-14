@@ -1,5 +1,6 @@
 Reductor = {};
 Reductor.scene = new THREE.Scene();
+Reductor.utils = new Utils();
 var CubeView = Backbone.View.extend({
 	initialize: function(params){
 		//console.log(params);
@@ -43,6 +44,7 @@ var GameView = Backbone.View.extend({
 		this.lastTime = 0;
 		this.cubeViews = [];
 		this.playerNumber = params.playerNumber;
+		this.colours = params.colours;
 
 		var cameraDistance = this.model.size + 5;
 		this.camera.position.set(cameraDistance, cameraDistance, cameraDistance);
@@ -126,19 +128,32 @@ var GameView = Backbone.View.extend({
 		this.renderer.render(Reductor.scene, this.camera);
 		var myKeyNumber = this.playerNumber;
 		var otherKeyNumber = (this.playerNumber + 1) % 2;
-		/*$('#key1').css({
-			'background-color': this.model.get('colours')[myKeyNumber],
-			'color': this.model.get('textColours')[myKeyNumber]
+		var textColours = [Reductor.utils.DetermineBrightness(Reductor.utils.HexStringToUint(this.colours[0])) < 0.5 ? "#FFFFFF" : "#000000", Reductor.utils.DetermineBrightness(Reductor.utils.HexStringToUint(this.colours[1])) < 0.5 ? "#FFFFFF" : "#000000"];
+		$('#key1').css({
+			'background-color': this.colours[myKeyNumber],
+			'color': textColours[myKeyNumber]
 		});
-		$('#keyText1').html(this.model.get('playerCubes')[myKeyNumber].length);
+		$('#keyText1').html(this.getPlayerCubes(myKeyNumber).length);
 
 		$('#key2').css({
-			'background-color': this.model.get('colours')[otherKeyNumber],
-			'color': this.model.get('textColours')[otherKeyNumber]
+			'background-color': this.colours[otherKeyNumber],
+			'color': textColours[otherKeyNumber]
 		})
-		$('#keyText2').html(this.model.get('playerCubes')[otherKeyNumber].length);*/
+		$('#keyText2').html(this.getPlayerCubes(otherKeyNumber).length);
 
 		if(this.moving) window.requestAnimationFrame(this.render);
+	},
+	getPlayerCubes:function(playerNumber){
+		var list = [];
+		var self = this;
+		for(var i=0; i<self.model.length; i++){
+			var cube = self.model.at(i);
+			if (cube.get('colour') == self.colours[playerNumber])
+			{
+				list.push(cube);
+			}
+		}
+		return list;
 	},
 
 	resizeCanvas: function(){
@@ -167,17 +182,18 @@ var GameView = Backbone.View.extend({
 				{
 					if(this.INTERSECTED)
 					{
-						this.INTERSECTED.material.color.setHex(utils.HexStringToUint(this.INTERSECTED.currentHex));
+						this.INTERSECTED.material.color.setHex(Reductor.utils.HexStringToUint(this.INTERSECTED.currentHex));
 						this.render();
 					}
 					this.INTERSECTED = intersects[0].object;
-					this.INTERSECTED.currentHex = utils.UintToHexString(this.INTERSECTED.material.color.getHex());
-					this.INTERSECTED.colourIndex = this.model.get('colours').indexOf(this.INTERSECTED.currentHex);
+					console.log(this.INTERSECTED.position.x, this.INTERSECTED.position.y, this.INTERSECTED.position.z);
+					this.INTERSECTED.currentHex = Reductor.utils.UintToHexString(this.INTERSECTED.material.color.getHex());
+					this.INTERSECTED.colourIndex = this.colours.indexOf(this.INTERSECTED.currentHex);
 					if(this.cubeIsSelectable(this.INTERSECTED))
 					{
 						this.INTERSECTED.selectable = true;
-						//var brighterColour = utils.increaseBrightness(this.INTERSECTED.currentHex, 40);
-						//this.INTERSECTED.material.color.setHex(utils.HexStringToUint(brighterColour));
+						//var brighterColour = Reductor.utils.increaseBrightness(this.INTERSECTED.currentHex, 40);
+						//this.INTERSECTED.material.color.setHex(Reductor.utils.HexStringToUint(brighterColour));
 						this.INTERSECTED.material.color.setHex(0xFFFFFF);
 						this.render();
 					}
@@ -187,7 +203,7 @@ var GameView = Backbone.View.extend({
 			{
 				if(this.INTERSECTED)
 				{
-					this.INTERSECTED.material.color.setHex(utils.HexStringToUint(this.INTERSECTED.currentHex));
+					this.INTERSECTED.material.color.setHex(Reductor.utils.HexStringToUint(this.INTERSECTED.currentHex));
 					this.render();
 				}
 
@@ -198,15 +214,17 @@ var GameView = Backbone.View.extend({
 	},
 	onMouseDown: function(event)
 	{
+		var self = this;
 		event.preventDefault();
-		if (this.INTERSECTED) {
-			if(this.INTERSECTED.selectable)
+		if (self.INTERSECTED) {
+			if(self.INTERSECTED.selectable)
 			{
-				var intersectedCubeIndex = this.getCubeIndexByPosition(this.INTERSECTED.position.x, this.INTERSECTED.position.y, this.INTERSECTED.position.z);
-				var cubes = this.model.get('cubes');
-				var intersectedCubeModel =cubes.models[intersectedCubeIndex];
-				this.model.removeCube(intersectedCubeModel);
-				this.INTERSECTED = null;
+				var intersectedCubeIndex = self.getCubeIndexByPosition(self.INTERSECTED.position.x, self.INTERSECTED.position.y, self.INTERSECTED.position.z);
+				var intersectedCubeModel = self.model.at(intersectedCubeIndex);
+				Reductor.scene.remove(self.cubeViews[intersectedCubeIndex]);
+				self.cubeViews.splice(intersectedCubeIndex, 1);
+				self.model.remove(intersectedCubeModel);
+				self.INTERSECTED = null;
 			}
 		}
 	},
@@ -265,11 +283,10 @@ var GameView = Backbone.View.extend({
 	},
 
 	getCubeIndexByPosition: function(x, y, z){
-		var cubes = this.model.get('cubes');
-		for(var i=0; i<cubes.length; i++)
+		for(var i=0; i<this.model.length; i++)
 		{
-			var cube = cubes.models[i];
-			var position = cube.position;
+			var cube = this.model.at(i);
+			var position = cube.get('position');
 			if(position.x == x && position.y == y && position.z == z)
 			{
 				return i;
@@ -291,14 +308,13 @@ var GameView = Backbone.View.extend({
 	cubeIsSelectable: function(cube)
 	{
 		var position = cube.position;
-		var cubes = this.model.get('cubes');
 		var cubeIndex = this.getCubeIndexByPosition(position.x, position.y, position.z);
-		var cubeModel = this.model.get('cubes').models[cubeIndex];
-		var targetColour = this.model.get('colours')[this.playerNumber];
-		if(cubeModel.colour != targetColour){
+		var cubeModel = this.model.at(cubeIndex);
+		var targetColour = this.colours[this.playerNumber];
+		if(cubeModel.get('colour') != targetColour){
 			return false;
 		}
-		if(utils.cubeExistsAbove(position.x, position.y, position.z, this.model.get('cubes'))){
+		if(Reductor.utils.cubeExistsAbove(position.x, position.y, position.z, this.model)){
 			return false;
 		}
 		return true;

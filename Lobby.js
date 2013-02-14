@@ -63,10 +63,11 @@ Game.prototype.generateLevel = function(){
 			if(heightMap[i][j] != 0) {
 				var currentHeight = heightMap[i][j];
 				while (currentHeight != 0) {
-					currentHeight--;
-					var newSubPosition = new Vectors.Vector3D(Math.ceil(i - this.size/2), currentHeight, Math.ceil(j - this.size/2))
-					this.cubes.push({id: index, position: newSubPosition});
 					index++;
+					currentHeight--;
+					var newSubPosition = new Vectors.Vector3D(Math.ceil(i - this.size/2), currentHeight, Math.ceil(j - this.size/2));
+					this.cubes.push({id: index, position: newSubPosition});
+
 				}
 			}
 			index++;

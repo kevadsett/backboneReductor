@@ -63,7 +63,7 @@ io.sockets.on('connection', function (client) {
 	game.addPlayer();
 	var playerNumber = game.connectedPlayers - 1;
 
-	client.emit('connected', {gameModel: game.cubes, playerNumber:playerNumber, gameSize: game.size});
+	client.emit('connected', {gameModel: game.cubes, playerNumber:playerNumber, gameSize: game.size, colours:game.colours});
 
 	/*socket.on('disconnect', function(){
 		console.log(socket.id + " has disconnected");

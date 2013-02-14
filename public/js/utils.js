@@ -165,7 +165,7 @@ Utils.prototype.cubeExistsAbove = function(x, y, z, cubes)
 		}
 		else
 		{
-			cubePosition = cube.position;
+			cubePosition = cube.get('position');
 		}
 		var _x = cubePosition.x, _y = cubePosition.y, _z = cubePosition.z;
 		if(_x == x && _y == y+1 && _z == z)

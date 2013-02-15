@@ -59,12 +59,23 @@ io.sockets.on('connection', function (client) {
 	console.log("new client: " + client.id);
 	clients.push(client);
 
-	var game = lobby.getGame();
-	game.addPlayer();
-	var playerNumber = game.connectedPlayers - 1;
+	client.game = lobby.getGame();
+	client.game.addPlayer(client.id);
+	var playerNumber = client.game.connectedPlayers - 1;
 
-	client.emit('connected', {gameModel: game.cubes, playerNumber:playerNumber, gameSize: game.size, colours:game.colours});
-
+	client.emit('connected', {gameModel: client.game.cubes, playerNumber:playerNumber, gameSize: client.game.size, colours:client.game.colours});
+	
+	client.on('cubeRemoved', function(data){
+		client.game.deleteCube(data.cubeID);
+		var otherPlayerID = client.game.getOtherPlayer(client.id);
+		for(var i=0; i<clients.length; i++)
+		{
+			if(clients[i].id == otherPlayerID)
+			{
+				clients[i].emit('modelCubeRemoved', {cubeID: data.cubeID});
+			}
+		}
+	});
 	/*socket.on('disconnect', function(){
 		console.log(socket.id + " has disconnected");
 		clients.splice(clients.indexOf(socket), 1);

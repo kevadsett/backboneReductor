@@ -49,7 +49,7 @@ var GameView = Backbone.View.extend({
 		var cameraDistance = this.model.size + 5;
 		this.camera.position.set(cameraDistance, cameraDistance, cameraDistance);
 		this.camera.lookAt(Reductor.scene.position);
-		_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'onMouseDown', 'getIntersects', 'onKeyDown', 'getCubeIndexByPosition', 'getCubeViewByPosition', 'modelChanged');
+		_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'onMouseDown', 'removeCube', 'getIntersects', 'onKeyDown', 'getCubeMeshIDByPosition', 'getCubeModelIDByPosition',  'getCubeViewByPosition');
 
 		this.setupRenderer();
 		this.resizeCanvas();
@@ -58,10 +58,16 @@ var GameView = Backbone.View.extend({
 		this.render();
 
 		this.model.bind('remove', this.cubeRemoved, this);
+		var self = this;
+		window.socket.on('modelCubeRemoved', function(data){
+			console.log("Server cube removed. Model ID: " + data.cubeID);
+			self.removeCube(data.cubeID, true);
+		});
 	},
 
 	cubeRemoved: function(options){
-		console.log(options.id);
+		console.log("Sending ID: " + options.id + " to server");
+		window.socket.emit('cubeRemoved', {cubeID: options.id});
 	},
 
 	initialiseCubeViews: function(){
@@ -190,7 +196,7 @@ var GameView = Backbone.View.extend({
 						this.render();
 					}
 					this.INTERSECTED = intersects[0].object;
-					console.log(this.INTERSECTED.position.x, this.INTERSECTED.position.y, this.INTERSECTED.position.z);
+					console.log(this.INTERSECTED.id + ": {" + this.INTERSECTED.position.x, this.INTERSECTED.position.y, this.INTERSECTED.position.z + "}");
 					this.INTERSECTED.currentHex = Reductor.utils.UintToHexString(this.INTERSECTED.material.color.getHex());
 					this.INTERSECTED.colourIndex = this.colours.indexOf(this.INTERSECTED.currentHex);
 					if(this.cubeIsSelectable(this.INTERSECTED))
@@ -223,14 +229,28 @@ var GameView = Backbone.View.extend({
 		if (self.INTERSECTED) {
 			if(self.INTERSECTED.selectable)
 			{
-				var intersectedCubeIndex = self.getCubeIndexByPosition(self.INTERSECTED.position.x, self.INTERSECTED.position.y, self.INTERSECTED.position.z);
-				var intersectedCubeModel = self.model.at(intersectedCubeIndex);
-				Reductor.scene.remove(self.cubeViews[intersectedCubeIndex]);
-				self.cubeViews.splice(intersectedCubeIndex, 1);
-				self.model.remove(intersectedCubeModel);
+				var intersectedCubeIndex = self.getCubeModelIDByPosition(self.INTERSECTED.position.x, self.INTERSECTED.position.y, self.INTERSECTED.position.z);
+				console.log("CubeMesh " + self.getCubeMeshIDByPosition(self.INTERSECTED.position.x, self.INTERSECTED.position.y, self.INTERSECTED.position.z) + " clicked (model id: " + intersectedCubeIndex + ")" );
+				self.removeCube(intersectedCubeIndex, false);
 				self.INTERSECTED = null;
 			}
 		}
+	},
+
+	removeCube: function(cubeID, removedByServer){
+		var cubeMeshID = cubeID;
+		//console.log("this.model.at(" + cubeID + ") position: ");
+		//console.log(this.model.at(cubeID).get('position'));
+		if(removedByServer == undefined) removedByServer = false;
+		//console.log("this.cubeViews[" + cubeMeshID + "] position:");
+		//console.log(this.cubeViews[cubeMeshID].position);
+		Reductor.scene.remove(this.cubeViews[cubeMeshID]);
+		//console.log("this.cubeViews[" + cubeMeshID + "] position:");
+		//console.log(this.cubeViews[cubeMeshID].position);
+		this.cubeViews.splice(cubeMeshID, 1);
+		var cubeModel = this.model.at(cubeID);
+		if(!removedByServer) this.model.remove(cubeModel);
+		this.render();
 	},
 
 	onKeyDown: function(e){
@@ -286,14 +306,29 @@ var GameView = Backbone.View.extend({
 		return null;
 	},
 
-	getCubeIndexByPosition: function(x, y, z){
+	getCubeModelIDByPosition: function(x, y, z){
+		console.log("getCubeModelIDByPosition: ", x, y, z);
 		for(var i=0; i<this.model.length; i++)
 		{
 			var cube = this.model.at(i);
 			var position = cube.get('position');
 			if(position.x == x && position.y == y && position.z == z)
 			{
-				return i;
+
+				return cube.id;
+			}
+		}
+	},
+
+	getCubeMeshIDByPosition: function(x, y, z){
+		for(var i=0; i<this.cubeViews.length; i++)
+		{
+			var cube = this.cubeViews[i];
+			var position = cube.position;
+			console.log(i + ": [" + position.x + ", " + position.y + ", " + position.z + "]");
+			if(position.x == x && position.y == y && position.z == z)
+			{
+				return cube.id;
 			}
 		}
 	},
@@ -311,29 +346,22 @@ var GameView = Backbone.View.extend({
 
 	cubeIsSelectable: function(cube)
 	{
-		var position = cube.position;
-		var cubeIndex = this.getCubeIndexByPosition(position.x, position.y, position.z);
-		var cubeModel = this.model.at(cubeIndex);
+		console.log("cubeIsSelectable");
+		console.log("cubeMesh: " + cube.id + " position");
+		console.log(cube.position);
+		var cubeModel = this.model.at(this.getCubeModelIDByPosition(cube.position.x, cube.position.y, cube.position.z));
+		console.log("cubeModel " + cubeModel.id + " position");
+		console.log(cubeModel.get('position'));
 		var targetColour = this.colours[this.playerNumber];
 		if(cubeModel.get('colour') != targetColour){
+			console.log("false: wrong colour");
 			return false;
 		}
-		if(Reductor.utils.cubeExistsAbove(position.x, position.y, position.z, this.model)){
+		if(Reductor.utils.cubeExistsAbove(cube.position.x, cube.position.y, cube.position.z, this.model)){
+			console.log("false: cube exists above this one");
 			return false;
 		}
+		console.log("true");
 		return true;
-	},
-
-	modelChanged: function(cubeRemoved)
-	{
-		var position = cubeRemoved.position;
-		var cubeViewData = this.getCubeViewByPosition(position.x, position.y, position.z);
-		var i = cubeViewData.i;
-		var cube = cubeViewData.cubeView;
-		Reductor.scene.remove(cube);
-		//this.model.splice(i, 1);
-		//var cube = this.cubeViews(i);
-		this.cubeViews.splice(i, 1);
-		this.render();
 	}
 });

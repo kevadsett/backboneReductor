@@ -44,12 +44,24 @@ function Game(id){
 	this.connectedPlayers = 0;
 	this.size = 9;
 	this.cubes = [];
+	this.players = [];
 	this.colours = utils.getTwoDifferentColours();
 	this.generateLevel();
 };
 
-Game.prototype.addPlayer = function(){
+Game.prototype.addPlayer = function(playerID){
+	this.players[this.connectedPlayers] = playerID;
 	this.connectedPlayers++;
+	console.log(this.players);
+};
+
+Game.prototype.getOtherPlayer = function(playerID){
+	for(var i = 0; i < this.players.length; i++)
+	{
+		if(this.players[i] != playerID){
+			return this.players[i];
+		}
+	}
 };
 
 Game.prototype.generateLevel = function(){
@@ -149,6 +161,10 @@ Game.prototype.shaveTopCubeOff = function(playerToRemove){
 	console.log("Removing cube at position [" + topPosition.x + ", " + topPosition.y + ", " + topPosition.z + "]");
 	this.playerCubes[playerToRemove].splice(topCube.id, 1);
 	this.cubes.splice(topCube.id, 1);
+};
+
+Game.prototype.deleteCube = function(cubeID){
+	this.cubes.splice(cubeID, 1);
 };
 
 module.exports = Lobby;

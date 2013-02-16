@@ -63,17 +63,19 @@ io.sockets.on('connection', function (client) {
 	client.game.addPlayer(client.id);
 	var playerNumber = client.game.connectedPlayers - 1;
 
-	client.emit('connected', {gameModel: client.game.cubes, playerNumber:playerNumber, gameSize: client.game.size, colours:client.game.colours});
+	client.emit('connected', {gameModel: client.game.cubes, playerNumber:playerNumber, gameSize: client.game.size, colours:client.game.colours, turn:client.game.turn});
 
 	client.on('cubeRemoved', function(data){
 		console.log("cube removed: " + data.cubeID);
 		client.game.deleteCube(data.cubeID);
+		client.emit('turnChanged', {turn:client.game.turn});
 		var otherPlayerID = client.game.getOtherPlayer(client.id);
 		for(var i=0; i<clients.length; i++)
 		{
 			if(clients[i].id == otherPlayerID)
 			{
 				clients[i].emit('modelCubeRemoved', {cubeID: data.cubeID});
+				clients[i].emit('turnChanged', {turn:client.game.turn});
 			}
 		}
 	});

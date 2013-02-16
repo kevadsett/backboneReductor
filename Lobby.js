@@ -52,6 +52,8 @@ function Game(id){
 	this.players = [];
 	this.colours = utils.getTwoDifferentColours();
 	this.generateLevel();
+	this.turn = Math.round(Math.random());
+	console.log("New game created, first turn: " + this.turn);
 };
 
 Game.prototype.addPlayer = function(playerID){
@@ -183,6 +185,8 @@ Game.prototype.resetCubeIDs = function()
 
 Game.prototype.deleteCube = function(cubeID){
 	this.cubes.splice(cubeID, 1);
+	this.turn = (this.turn + 1) % 2;
+	console.log("new turn: " + this.turn);
 };
 
 module.exports = Lobby;

@@ -8,6 +8,6 @@ $(document).ready(function(e)
 
 		var cubeCollection = new CubeCollection(data.gameModel);
 		cubeCollection.size = data.gameSize;
-		var gameView = new GameView({model:cubeCollection, colours:data.colours, playerNumber:data.playerNumber});
+		var gameView = new GameView({model:cubeCollection, colours:data.colours, playerNumber:data.playerNumber, turn:data.turn});
 	});
 });

@@ -45,6 +45,7 @@ var GameView = Backbone.View.extend({
 		this.cubeViews = [];
 		this.playerNumber = params.playerNumber;
 		this.colours = params.colours;
+		this.turn = params.turn;
 
 		var cameraDistance = this.model.size + 5;
 		this.camera.position.set(cameraDistance, cameraDistance, cameraDistance);
@@ -66,6 +67,11 @@ var GameView = Backbone.View.extend({
 		window.socket.on('modelCubeRemoved', function(data){
 			console.log("Server cube removed. Model ID: " + data.cubeID);
 			self.serverRemovedCube(data.cubeID);
+		});
+		window.socket.on('turnChanged', function(data){
+			console.log("Turn has changed, new turn = " + data.turn);
+			if(self.turn != data.turn) self.turn = data.turn;
+			self.render();
 		});
 		window.socket.on('otherPlayerQuit'), function(data){
 			console.log("Other player quit");
@@ -149,6 +155,18 @@ var GameView = Backbone.View.extend({
 		var myKeyNumber = this.playerNumber;
 		var otherKeyNumber = (this.playerNumber + 1) % 2;
 		var textColours = [Reductor.utils.DetermineBrightness(Reductor.utils.HexStringToUint(this.colours[0])) < 0.5 ? "#FFFFFF" : "#000000", Reductor.utils.DetermineBrightness(Reductor.utils.HexStringToUint(this.colours[1])) < 0.5 ? "#FFFFFF" : "#000000"];
+		if (this.turn == this.playerNumber) {
+			$('#key1').removeClass("otherTurn");
+			$('#key1').addClass("myTurn");
+			$('#key2').removeClass("myTurn");
+			$('#key2').addClass("otherTurn");
+		}else{
+			$('#key1').addClass("otherTurn");
+			$('#key1').removeClass("myTurn");
+			$('#key2').addClass("myTurn");
+			$('#key2').removeClass("otherTurn");
+		}
+
 		$('#key1').css({
 			'background-color': this.colours[myKeyNumber],
 			'color': textColours[myKeyNumber]
@@ -235,16 +253,22 @@ var GameView = Backbone.View.extend({
 	onMouseDown: function(event)
 	{
 		var self = this;
+
 		event.preventDefault();
-		if (self.INTERSECTED) {
-			if(self.INTERSECTED.selectable)
-			{
-				var intersectedCubeIndex = self.getCubeModelIDByPosition(self.INTERSECTED.position.x, self.INTERSECTED.position.y, self.INTERSECTED.position.z);
-				console.log("CubeMesh " + self.INTERSECTED.id + " clicked (model id: " + intersectedCubeIndex + ")" );
-				this.serverRemoved = false;
-				self.removeCube(intersectedCubeIndex);
-				self.INTERSECTED = null;
+		if(this.turn == this.playerNumber)
+		{
+			if (self.INTERSECTED) {
+				if(self.INTERSECTED.selectable)
+				{
+					var intersectedCubeIndex = self.getCubeModelIDByPosition(self.INTERSECTED.position.x, self.INTERSECTED.position.y, self.INTERSECTED.position.z);
+					console.log("CubeMesh " + self.INTERSECTED.id + " clicked (model id: " + intersectedCubeIndex + ")" );
+					this.serverRemoved = false;
+					self.removeCube(intersectedCubeIndex);
+					self.INTERSECTED = null;
+				}
 			}
+		}else{
+			alert("It's not your turn!");
 		}
 	},
 
@@ -275,6 +299,7 @@ var GameView = Backbone.View.extend({
 		this.resetCubeIDs();
 		console.log("-------------------------------------\nAfter cube deletion:");
 		this.logCubeModels();
+		this.turn = (this.turn + 1) % 2;
 		this.render();
 	},
 
@@ -377,25 +402,25 @@ var GameView = Backbone.View.extend({
 
 	cubeIsSelectable: function(cube)
 	{
-		//console.log("cubeIsSelectable");
-		//console.log("cubeMesh: " + cube.id + " position");
-		//console.log(cube.position);
-		var cubeModelIndex = this.getCubeModelIDByPosition(cube.position.x, cube.position.y, cube.position.z);
-		//console.log("cubeModelIndex: " + cubeModelIndex);
-		var cubeModel = this.model.at(cubeModelIndex);
-		//console.log("cubeModel " + cubeModel.id + " position");
-		//console.log(cubeModel.get('position'));
-		var targetColour = this.colours[this.playerNumber];
-		if(cubeModel.get('colour') != targetColour){
-			//console.log("false: wrong colour");
+		console.log("this.turn: " + this.turn + ", this.playerNumber: " + this.playerNumber);
+		if(this.turn != this.playerNumber) {
+			console.log("false: it's not your turn");
 			return false;
+		} else {
+			var cubeModelIndex = this.getCubeModelIDByPosition(cube.position.x, cube.position.y, cube.position.z);
+			var cubeModel = this.model.at(cubeModelIndex);
+			var targetColour = this.colours[this.playerNumber];
+			if(cubeModel.get('colour') != targetColour){
+				//console.log("false: wrong colour");
+				return false;
+			} else if(Reductor.utils.cubeExistsAbove(cube.position.x, cube.position.y, cube.position.z, this.model)){
+				//console.log("false: cube exists above this one");
+				return false;
+			} else {
+				//console.log("true");
+				return true;
+			}
 		}
-		if(Reductor.utils.cubeExistsAbove(cube.position.x, cube.position.y, cube.position.z, this.model)){
-			//console.log("false: cube exists above this one");
-			return false;
-		}
-		//console.log("true");
-		return true;
 	},
 
 	logCubeModels: function()

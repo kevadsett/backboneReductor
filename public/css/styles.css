@@ -21,6 +21,16 @@ canvas
 	height: 100%;
 }
 
+.myTurn
+{
+	border: solid black 2px;
+}
+
+.otherTurn
+{
+	border: none;
+}
+
 #key1
 {
 	position: absolute;

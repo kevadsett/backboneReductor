@@ -49,7 +49,7 @@ var GameView = Backbone.View.extend({
 		var cameraDistance = this.model.size + 5;
 		this.camera.position.set(cameraDistance, cameraDistance, cameraDistance);
 		this.camera.lookAt(Reductor.scene.position);
-		_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'onMouseDown', 'removeCube', 'getIntersects', 'onKeyDown', 'getCubeMeshIDByPosition', 'getCubeModelIDByPosition',  'getCubeViewByPosition', 'logCubeModels');
+		_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'onMouseDown', 'removeCube', 'getIntersects', 'onKeyDown', 'getCubeMeshIDByPosition', 'getCubeModelIDByPosition',  'getCubeViewByPosition', 'logCubeModels', 'resetCubeIDs', 'serverRemovedCube');
 
 		this.setupRenderer();
 		this.resizeCanvas();
@@ -65,8 +65,7 @@ var GameView = Backbone.View.extend({
 
 		window.socket.on('modelCubeRemoved', function(data){
 			console.log("Server cube removed. Model ID: " + data.cubeID);
-			self.serverRemoved = true;
-			self.removeCube(data.cubeID);
+			self.serverRemovedCube(data.cubeID);
 		});
 		window.socket.on('otherPlayerQuit'), function(data){
 			console.log("Other player quit");
@@ -78,8 +77,7 @@ var GameView = Backbone.View.extend({
 		console.log("options.get('id'): " + options.get('id'));
 		console.log("options.id: " +  options.id);
 		console.log("Sending ID: " + options.get('id') + " to server");
-		console.log("this.serverRemoved: " + this.serverRemoved);
-		window.socket.emit('cubeRemoved', {cubeID: options.get('id'), serverRemoved:this.serverRemoved});
+		if(this.serverRemoved == false) window.socket.emit('cubeRemoved', {cubeID: options.get('id')});
 	},
 
 	initialiseCubeViews: function(){
@@ -250,25 +248,43 @@ var GameView = Backbone.View.extend({
 		}
 	},
 
-	removeCube: function(cubeID){
-		console.log("removing cube: removed by server: " + this.serverRemoved);
-		var cubeMeshID = cubeID;
-		Reductor.scene.remove(this.cubeViews[cubeMeshID]);
-		this.cubeViews.splice(cubeMeshID, 1);
+	serverRemovedCube: function(cubeID){
+		console.log("removing cube: removed by server");
+		Reductor.scene.remove(this.cubeViews[cubeID]);
+		this.cubeViews.splice(cubeID, 1);
 		var cubeModel = this.model.at(cubeID);
 		console.log("Before cube deletion: ");
 		this.logCubeModels();
+		this.serverRemoved = true;
 		this.model.remove(cubeModel);
+		this.resetCubeIDs();
+		console.log("-------------------------------------\nAfter cube deletion:");
+		this.logCubeModels();
+		this.render();
+	},
 
+	removeCube: function(cubeID){
+		console.log("removing cube: removed by player");
+		Reductor.scene.remove(this.cubeViews[cubeID]);
+		this.cubeViews.splice(cubeID, 1);
+		var cubeModel = this.model.at(cubeID);
+		console.log("Before cube deletion: ");
+		this.logCubeModels();
+		this.serverRemoved = false;
+		this.model.remove(cubeModel);
+		this.resetCubeIDs();
+		console.log("-------------------------------------\nAfter cube deletion:");
+		this.logCubeModels();
+		this.render();
+	},
+
+	resetCubeIDs: function(){
 		for(var i = 0; i < this.model.length; i++)
 		{
 			var cube = this.model.at(i);
 			cube.id = i;
 			cube.set({id: i});
 		}
-		console.log("-------------------------------------\nAfter cube deletion:");
-		this.logCubeModels();
-		this.render();
 	},
 
 	onKeyDown: function(e){

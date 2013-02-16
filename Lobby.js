@@ -38,6 +38,11 @@ Lobby.prototype.addGame = function(){
 	return(this.gamesInProgress[this.gamesInProgress.length-1]);
 };
 
+Lobby.prototype.removeGame = function(gameToRemove){
+	var gameIndex = this.gamesInProgress.indexOf(gameToRemove);
+	if(gameIndex != -1) this.gamesInProgress.splice(gameIndex, 1);
+}
+
 function Game(id){
 	console.log("New game. ID: " + id);
 	this.id = id;
@@ -53,6 +58,10 @@ Game.prototype.addPlayer = function(playerID){
 	this.players[this.connectedPlayers] = playerID;
 	this.connectedPlayers++;
 	console.log(this.players);
+};
+
+Game.prototype.removePlayer = function(){
+	this.connectedPlayers--;
 };
 
 Game.prototype.getOtherPlayer = function(playerID){
@@ -148,9 +157,9 @@ Game.prototype.shaveTopCubeOff = function(playerToRemove){
 		if(xIsBetter) cubeScore++;
 		if(yIsBetter) cubeScore+=2;
 		if(zIsBetter) cubeScore++;
-		if(cubeExistsAbove) cubeScore -= 10;
-		//console.log("cubeScore: " + cubeScore);
-		//console.log("topScore: " + topScore);
+		if(cubeExistsAbove) cubeScore -= 1000;
+		console.log("i: " + i + " | cubeScore: " + cubeScore);
+		console.log("topScore: " + topScore);
 		if(cubeScore >= topScore)
 		{
 			topScore = cubeScore;
@@ -161,7 +170,16 @@ Game.prototype.shaveTopCubeOff = function(playerToRemove){
 	console.log("Removing cube at position [" + topPosition.x + ", " + topPosition.y + ", " + topPosition.z + "]");
 	this.playerCubes[playerToRemove].splice(topCube.id, 1);
 	this.cubes.splice(topCube.id, 1);
+	this.resetCubeIDs();
 };
+
+Game.prototype.resetCubeIDs = function()
+{
+	for (var i = 0; i < this.cubes.length; i++)
+	{
+		this.cubes[i].id = i;
+	}
+}
 
 Game.prototype.deleteCube = function(cubeID){
 	this.cubes.splice(cubeID, 1);

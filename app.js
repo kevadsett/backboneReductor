@@ -40,7 +40,7 @@ app.configure('production', function() {
 // https://devcenter.heroku.com/articles/using-socket-io-with-node-js-on-heroku
 io.configure(function () {
   io.set("transports", ["xhr-polling"]);
-  io.set("polling duration", 10);
+  io.set("polling duration", 15);
 });
 
 // Routes
@@ -64,25 +64,40 @@ io.sockets.on('connection', function (client) {
 	var playerNumber = client.game.connectedPlayers - 1;
 
 	client.emit('connected', {gameModel: client.game.cubes, playerNumber:playerNumber, gameSize: client.game.size, colours:client.game.colours});
-	
+
 	client.on('cubeRemoved', function(data){
-		client.game.deleteCube(data.cubeID);
+		console.log(client.id + ": data.serverRemoved: " + data.serverRemoved);
+		if(data.serverRemoved == false)
+		{
+			console.log("cube removed: " + data.cubeID);
+			client.game.deleteCube(data.cubeID);
+			var otherPlayerID = client.game.getOtherPlayer(client.id);
+			for(var i=0; i<clients.length; i++)
+			{
+				if(clients[i].id == otherPlayerID)
+				{
+					clients[i].emit('modelCubeRemoved', {cubeID: data.cubeID});
+				}
+			}
+		}
+	});
+	client.on('disconnect', function(){
+		console.log(client.id + " has disconnected");
+		client.game.connectedPlayers--;
 		var otherPlayerID = client.game.getOtherPlayer(client.id);
+		console.log("Other player in game:", otherPlayerID);
 		for(var i=0; i<clients.length; i++)
 		{
 			if(clients[i].id == otherPlayerID)
 			{
-				clients[i].emit('modelCubeRemoved', {cubeID: data.cubeID});
+				console.log("Emitting message to", clients[i].id);
+				console.log(clients[i]);
+				clients[i].emit('otherPlayerQuit', {playerWhoQuit: client.id});
 			}
 		}
-	});
-	/*socket.on('disconnect', function(){
-		console.log(socket.id + " has disconnected");
-		clients.splice(clients.indexOf(socket), 1);
-		game.removePlayer();
-		if(game.connectedPlayers == 0)
-		{
-			lobby.remove(game);
-		}
-	})*/
+
+		clients.splice(clients.indexOf(client.id), 1);
+
+		lobby.removeGame(client.game);
+	})
 });

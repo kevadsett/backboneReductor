@@ -49,7 +49,7 @@ var GameView = Backbone.View.extend({
 		var cameraDistance = this.model.size + 5;
 		this.camera.position.set(cameraDistance, cameraDistance, cameraDistance);
 		this.camera.lookAt(Reductor.scene.position);
-		_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'onMouseDown', 'removeCube', 'getIntersects', 'onKeyDown', 'getCubeMeshIDByPosition', 'getCubeModelIDByPosition',  'getCubeViewByPosition');
+		_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'onMouseDown', 'removeCube', 'getIntersects', 'onKeyDown', 'getCubeMeshIDByPosition', 'getCubeModelIDByPosition',  'getCubeViewByPosition', 'logCubeModels');
 
 		this.setupRenderer();
 		this.resizeCanvas();
@@ -57,17 +57,29 @@ var GameView = Backbone.View.extend({
 		this.createLights()
 		this.render();
 
+		this.serverRemoved = false;
+
 		this.model.bind('remove', this.cubeRemoved, this);
+
 		var self = this;
+
 		window.socket.on('modelCubeRemoved', function(data){
 			console.log("Server cube removed. Model ID: " + data.cubeID);
-			self.removeCube(data.cubeID, true);
+			self.serverRemoved = true;
+			self.removeCube(data.cubeID);
 		});
+		window.socket.on('otherPlayerQuit'), function(data){
+			console.log("Other player quit");
+			alert("The other player has quit. Sorry");
+		}
 	},
 
 	cubeRemoved: function(options){
-		console.log("Sending ID: " + options.id + " to server");
-		window.socket.emit('cubeRemoved', {cubeID: options.id});
+		console.log("options.get('id'): " + options.get('id'));
+		console.log("options.id: " +  options.id);
+		console.log("Sending ID: " + options.get('id') + " to server");
+		console.log("this.serverRemoved: " + this.serverRemoved);
+		window.socket.emit('cubeRemoved', {cubeID: options.get('id'), serverRemoved:this.serverRemoved});
 	},
 
 	initialiseCubeViews: function(){
@@ -230,26 +242,32 @@ var GameView = Backbone.View.extend({
 			if(self.INTERSECTED.selectable)
 			{
 				var intersectedCubeIndex = self.getCubeModelIDByPosition(self.INTERSECTED.position.x, self.INTERSECTED.position.y, self.INTERSECTED.position.z);
-				console.log("CubeMesh " + self.getCubeMeshIDByPosition(self.INTERSECTED.position.x, self.INTERSECTED.position.y, self.INTERSECTED.position.z) + " clicked (model id: " + intersectedCubeIndex + ")" );
-				self.removeCube(intersectedCubeIndex, false);
+				console.log("CubeMesh " + self.INTERSECTED.id + " clicked (model id: " + intersectedCubeIndex + ")" );
+				this.serverRemoved = false;
+				self.removeCube(intersectedCubeIndex);
 				self.INTERSECTED = null;
 			}
 		}
 	},
 
-	removeCube: function(cubeID, removedByServer){
+	removeCube: function(cubeID){
+		console.log("removing cube: removed by server: " + this.serverRemoved);
 		var cubeMeshID = cubeID;
-		//console.log("this.model.at(" + cubeID + ") position: ");
-		//console.log(this.model.at(cubeID).get('position'));
-		if(removedByServer == undefined) removedByServer = false;
-		//console.log("this.cubeViews[" + cubeMeshID + "] position:");
-		//console.log(this.cubeViews[cubeMeshID].position);
 		Reductor.scene.remove(this.cubeViews[cubeMeshID]);
-		//console.log("this.cubeViews[" + cubeMeshID + "] position:");
-		//console.log(this.cubeViews[cubeMeshID].position);
 		this.cubeViews.splice(cubeMeshID, 1);
 		var cubeModel = this.model.at(cubeID);
-		if(!removedByServer) this.model.remove(cubeModel);
+		console.log("Before cube deletion: ");
+		this.logCubeModels();
+		this.model.remove(cubeModel);
+
+		for(var i = 0; i < this.model.length; i++)
+		{
+			var cube = this.model.at(i);
+			cube.id = i;
+			cube.set({id: i});
+		}
+		console.log("-------------------------------------\nAfter cube deletion:");
+		this.logCubeModels();
 		this.render();
 	},
 
@@ -307,14 +325,12 @@ var GameView = Backbone.View.extend({
 	},
 
 	getCubeModelIDByPosition: function(x, y, z){
-		console.log("getCubeModelIDByPosition: ", x, y, z);
 		for(var i=0; i<this.model.length; i++)
 		{
 			var cube = this.model.at(i);
 			var position = cube.get('position');
 			if(position.x == x && position.y == y && position.z == z)
 			{
-
 				return cube.id;
 			}
 		}
@@ -325,7 +341,6 @@ var GameView = Backbone.View.extend({
 		{
 			var cube = this.cubeViews[i];
 			var position = cube.position;
-			console.log(i + ": [" + position.x + ", " + position.y + ", " + position.z + "]");
 			if(position.x == x && position.y == y && position.z == z)
 			{
 				return cube.id;
@@ -346,22 +361,34 @@ var GameView = Backbone.View.extend({
 
 	cubeIsSelectable: function(cube)
 	{
-		console.log("cubeIsSelectable");
-		console.log("cubeMesh: " + cube.id + " position");
-		console.log(cube.position);
-		var cubeModel = this.model.at(this.getCubeModelIDByPosition(cube.position.x, cube.position.y, cube.position.z));
-		console.log("cubeModel " + cubeModel.id + " position");
-		console.log(cubeModel.get('position'));
+		//console.log("cubeIsSelectable");
+		//console.log("cubeMesh: " + cube.id + " position");
+		//console.log(cube.position);
+		var cubeModelIndex = this.getCubeModelIDByPosition(cube.position.x, cube.position.y, cube.position.z);
+		//console.log("cubeModelIndex: " + cubeModelIndex);
+		var cubeModel = this.model.at(cubeModelIndex);
+		//console.log("cubeModel " + cubeModel.id + " position");
+		//console.log(cubeModel.get('position'));
 		var targetColour = this.colours[this.playerNumber];
 		if(cubeModel.get('colour') != targetColour){
-			console.log("false: wrong colour");
+			//console.log("false: wrong colour");
 			return false;
 		}
 		if(Reductor.utils.cubeExistsAbove(cube.position.x, cube.position.y, cube.position.z, this.model)){
-			console.log("false: cube exists above this one");
+			//console.log("false: cube exists above this one");
 			return false;
 		}
-		console.log("true");
+		//console.log("true");
 		return true;
+	},
+
+	logCubeModels: function()
+	{
+		for(var i=0; i<this.model.length; i++)
+		{
+			var cube = this.model.at(i);
+			var position = cube.get('position');
+			console.log("models[" + i + "]" + ": cube.id: " + cube.id + " | cube.get('id'): " + cube.get('id') + " | [" + position.x + ", " + position.y + ", " + position.z + "]");
+		}
 	}
 });

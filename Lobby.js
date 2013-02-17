@@ -47,7 +47,7 @@ function Game(id){
 	console.log("New game. ID: " + id);
 	this.id = id;
 	this.connectedPlayers = 0;
-	this.size = 9;
+	this.size = 5;
 	this.cubes = [];
 	this.players = [];
 	this.colours = utils.getTwoDifferentColours();
@@ -56,8 +56,8 @@ function Game(id){
 	console.log("New game created, first turn: " + this.turn);
 };
 
-Game.prototype.addPlayer = function(playerID){
-	this.players[this.connectedPlayers] = playerID;
+Game.prototype.addPlayer = function(player){
+	this.players[this.connectedPlayers] = {id: player.id, name:player.name};
 	this.connectedPlayers++;
 	console.log(this.players);
 };
@@ -66,14 +66,24 @@ Game.prototype.removePlayer = function(){
 	this.connectedPlayers--;
 };
 
-Game.prototype.getOtherPlayer = function(playerID){
+Game.prototype.getOtherPlayerID = function(playerID){
 	for(var i = 0; i < this.players.length; i++)
 	{
-		if(this.players[i] != playerID){
-			return this.players[i];
+		if(this.players[i].id != playerID){
+			return this.players[i].id;
 		}
 	}
 };
+
+Game.prototype.getOtherPlayerName = function(playerID){
+	for(var i = 0; i < this.players.length; i++)
+	{
+		if(this.players[i].id != playerID){
+			return this.players[i].name;
+		}
+	}
+};
+
 
 Game.prototype.generateLevel = function(){
 	perlin.setupPerlin(this.size, this.size);

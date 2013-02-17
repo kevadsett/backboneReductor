@@ -11,7 +11,8 @@ var express = require('express'),
 	server = http.createServer(app),
 	Vectors = require('./public/js/Vectors'),
 	Utils = require('./public/js/Utils'),
-	io = require('socket.io').listen(server, {log: false});
+	io = require('socket.io').listen(server, {log: false}),
+	url = require('url');
 
 var utils = new Utils();
 server.listen(port);
@@ -58,22 +59,39 @@ var clients = [];
 io.sockets.on('connection', function (client) {
 	console.log("new client: " + client.id);
 	clients.push(client);
+	client.emit('playerURLRecieved', {url:client.id});
 
-	client.game = lobby.getGame();
-	client.game.addPlayer(client.id);
-	var playerNumber = client.game.connectedPlayers - 1;
+	client.on('startGame', function(data, callback){
+		client.nickname = data.playerName;
+		client.game = lobby.getGame();
+		client.game.addPlayer({id:client.id, name:client.nickname});
+		var playerNumber = client.game.connectedPlayers - 1;
 
-	client.emit('connected', {gameModel: client.game.cubes, playerNumber:playerNumber, gameSize: client.game.size, colours:client.game.colours, turn:client.game.turn});
+		client.emit('connected', {gameModel: client.game.cubes, playerNumber:playerNumber, players:client.game.players, gameSize: client.game.size, colours:client.game.colours, turn:client.game.turn});
+		var otherPlayerID = client.game.getOtherPlayerID(client.id);
+		console.log(otherPlayerID);
+		for(var i=0; i<clients.length; i++)
+		{
+			if(clients[i].id == otherPlayerID)
+			{
+				console.log(clients[i].nickname);
+				clients[i].emit('playerJoined', {name: client.nickname});
+			}
+		}
+	});
 
 	client.on('cubeRemoved', function(data){
 		console.log("cube removed: " + data.cubeID);
 		client.game.deleteCube(data.cubeID);
 		client.emit('turnChanged', {turn:client.game.turn});
-		var otherPlayerID = client.game.getOtherPlayer(client.id);
+		var otherPlayerID = client.game.getOtherPlayerID(client.id);
+		console.log("otherPlayerID: " + otherPlayerID);
 		for(var i=0; i<clients.length; i++)
 		{
+			console.log(clients[i].id);
 			if(clients[i].id == otherPlayerID)
 			{
+				console.log("Emitting cubeRemoved and turn changed");
 				clients[i].emit('modelCubeRemoved', {cubeID: data.cubeID});
 				clients[i].emit('turnChanged', {turn:client.game.turn});
 			}
@@ -81,20 +99,26 @@ io.sockets.on('connection', function (client) {
 	});
 	client.on('disconnect', function(){
 		console.log(client.id + " has disconnected");
-		client.game.connectedPlayers--;
-		var otherPlayerID = client.game.getOtherPlayer(client.id);
-		console.log("Other player in game:", otherPlayerID);
-		for(var i=0; i<clients.length; i++)
+		if(client.game)
 		{
-			if(clients[i].id == otherPlayerID)
+			client.game.connectedPlayers--;
+			var otherPlayerID = client.game.getOtherPlayerID(client.id);
+			//console.log("Other player in game:", otherPlayerID);
+			for(var i=0; i<clients.length; i++)
 			{
-				console.log("Emitting message to", clients[i].id);
-				console.log(clients[i]);
-				clients[i].emit('otherPlayerQuit', {playerWhoQuit: client.id});
+				if(clients[i].id == client.id)
+				{
+					clients.splice(i, 1);
+				}else if(clients[i].id == otherPlayerID)
+				{
+					//console.log("Emitting message to", clients[i].id);
+					//console.log(clients[i]);
+					clients[i].emit('otherPlayerQuit', {playerWhoQuit: client.id});
+				}
 			}
 		}
 
-		clients.splice(clients.indexOf(client.id), 1);
+		
 
 		lobby.removeGame(client.game);
 	})

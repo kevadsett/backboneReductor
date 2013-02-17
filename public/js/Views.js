@@ -30,6 +30,7 @@ var CubeView = Backbone.View.extend({
 var GameView = Backbone.View.extend({
 	el: $('body'),
 	initialize: function(params){
+		this.gameStarted = false;
 		this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
 		this.projector = new THREE.Projector();
 		this.targetX = 0;
@@ -46,7 +47,11 @@ var GameView = Backbone.View.extend({
 		this.playerNumber = params.playerNumber;
 		this.colours = params.colours;
 		this.turn = params.turn;
-
+		this.playerNames = [];
+		for(var i=0; i<params.players.length; i++)
+		{
+			this.playerNames.push(params.players[i].name);
+		}
 		var cameraDistance = this.model.size + 5;
 		this.camera.position.set(cameraDistance, cameraDistance, cameraDistance);
 		this.camera.lookAt(Reductor.scene.position);
@@ -63,7 +68,11 @@ var GameView = Backbone.View.extend({
 		this.model.bind('remove', this.cubeRemoved, this);
 
 		var self = this;
-
+		window.socket.on('playerJoined', function(data){
+			console.log("New player joined! " + data.name)
+			self.playerNames.push(data.name);
+			self.render();
+		});
 		window.socket.on('modelCubeRemoved', function(data){
 			console.log("Server cube removed. Model ID: " + data.cubeID);
 			self.serverRemovedCube(data.cubeID);
@@ -156,29 +165,33 @@ var GameView = Backbone.View.extend({
 		var otherKeyNumber = (this.playerNumber + 1) % 2;
 		var textColours = [Reductor.utils.DetermineBrightness(Reductor.utils.HexStringToUint(this.colours[0])) < 0.5 ? "#FFFFFF" : "#000000", Reductor.utils.DetermineBrightness(Reductor.utils.HexStringToUint(this.colours[1])) < 0.5 ? "#FFFFFF" : "#000000"];
 		if (this.turn == this.playerNumber) {
-			$('#key1').removeClass("otherTurn");
-			$('#key1').addClass("myTurn");
-			$('#key2').removeClass("myTurn");
-			$('#key2').addClass("otherTurn");
+			$('#key1 .keyNumber').removeClass("otherTurn");
+			$('#key1 .keyNumber').addClass("myTurn");
+			$('#key2 .keyNumber').removeClass("myTurn");
+			$('#key2 .keyNumber').addClass("otherTurn");
 		}else{
-			$('#key1').addClass("otherTurn");
-			$('#key1').removeClass("myTurn");
-			$('#key2').addClass("myTurn");
-			$('#key2').removeClass("otherTurn");
+			$('#key1 .keyNumber').addClass("otherTurn");
+			$('#key1 .keyNumber').removeClass("myTurn");
+			$('#key2 .keyNumber').addClass("myTurn");
+			$('#key2 .keyNumber').removeClass("otherTurn");
 		}
 
-		$('#key1').css({
+		$('#key1 .keyNumber').css({
 			'background-color': this.colours[myKeyNumber],
 			'color': textColours[myKeyNumber]
 		});
-		$('#keyText1').html(this.getPlayerCubes(myKeyNumber).length);
+		$('#key1 .keyNumber').html(this.getPlayerCubes(myKeyNumber).length);
+		$('#key1 .keyName').html(this.playerNames[myKeyNumber]);
 
-		$('#key2').css({
+		$('#key2 .keyNumber').css({
 			'background-color': this.colours[otherKeyNumber],
 			'color': textColours[otherKeyNumber]
 		})
-		$('#keyText2').html(this.getPlayerCubes(otherKeyNumber).length);
-
+		$('#key2 .keyNumber').html(this.getPlayerCubes(otherKeyNumber).length);
+		$('#key2 .keyName').html(this.playerNames[otherKeyNumber]);
+		
+		var turnText = this.playerNumber == this.turn ? "Your turn" : this.playerNames[this.turn] + "'s turn";
+		$('#turnText').html(turnText);
 		if(this.moving) window.requestAnimationFrame(this.render);
 	},
 	getPlayerCubes:function(playerNumber){
@@ -224,7 +237,7 @@ var GameView = Backbone.View.extend({
 						this.render();
 					}
 					this.INTERSECTED = intersects[0].object;
-					console.log(this.INTERSECTED.id + ": {" + this.INTERSECTED.position.x, this.INTERSECTED.position.y, this.INTERSECTED.position.z + "}");
+					//console.log(this.INTERSECTED.id + ": {" + this.INTERSECTED.position.x, this.INTERSECTED.position.y, this.INTERSECTED.position.z + "}");
 					this.INTERSECTED.currentHex = Reductor.utils.UintToHexString(this.INTERSECTED.material.color.getHex());
 					this.INTERSECTED.colourIndex = this.colours.indexOf(this.INTERSECTED.currentHex);
 					if(this.cubeIsSelectable(this.INTERSECTED))
@@ -266,9 +279,10 @@ var GameView = Backbone.View.extend({
 					self.removeCube(intersectedCubeIndex);
 					self.INTERSECTED = null;
 				}
+				else{
+					if(self.turn != self.playerNumber) alert("It's not your turn!");
+				}
 			}
-		}else{
-			alert("It's not your turn!");
 		}
 	},
 
@@ -277,13 +291,13 @@ var GameView = Backbone.View.extend({
 		Reductor.scene.remove(this.cubeViews[cubeID]);
 		this.cubeViews.splice(cubeID, 1);
 		var cubeModel = this.model.at(cubeID);
-		console.log("Before cube deletion: ");
-		this.logCubeModels();
+		//console.log("Before cube deletion: ");
+		//this.logCubeModels();
 		this.serverRemoved = true;
 		this.model.remove(cubeModel);
 		this.resetCubeIDs();
-		console.log("-------------------------------------\nAfter cube deletion:");
-		this.logCubeModels();
+		//console.log("-------------------------------------\nAfter cube deletion:");
+		//this.logCubeModels();
 		this.render();
 	},
 
@@ -292,13 +306,13 @@ var GameView = Backbone.View.extend({
 		Reductor.scene.remove(this.cubeViews[cubeID]);
 		this.cubeViews.splice(cubeID, 1);
 		var cubeModel = this.model.at(cubeID);
-		console.log("Before cube deletion: ");
-		this.logCubeModels();
+		//console.log("Before cube deletion: ");
+		//this.logCubeModels();
 		this.serverRemoved = false;
 		this.model.remove(cubeModel);
 		this.resetCubeIDs();
-		console.log("-------------------------------------\nAfter cube deletion:");
-		this.logCubeModels();
+		//console.log("-------------------------------------\nAfter cube deletion:");
+		//this.logCubeModels();
 		this.turn = (this.turn + 1) % 2;
 		this.render();
 	},
@@ -402,7 +416,7 @@ var GameView = Backbone.View.extend({
 
 	cubeIsSelectable: function(cube)
 	{
-		console.log("this.turn: " + this.turn + ", this.playerNumber: " + this.playerNumber);
+		//console.log("this.turn: " + this.turn + ", this.playerNumber: " + this.playerNumber);
 		if(this.turn != this.playerNumber) {
 			console.log("false: it's not your turn");
 			return false;

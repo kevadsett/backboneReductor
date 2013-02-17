@@ -15,6 +15,61 @@ body
 	font-family:'FranchiseRegular';
 }
 
+.invisible {
+	visibility:hidden;
+}
+
+#login {
+	position: absolute;
+	width: 12em;
+	height: 8em;
+	box-shadow: #CCC 0em 0em 2em 0em;
+	top: 25%;
+	left: 50%;
+	margin-top: -3.25em;
+	margin-left: -9em;
+	background: #FFF;
+	padding: 2em 3em;
+	text-align: center;
+}
+#loginForm #nameText {
+	font-family:'FranchiseRegular';
+	width: 100%;
+	margin-top: 0.6em;
+	font-size: 1.8em;
+	resize: none;
+	height: 1em;
+	text-align: center;
+	overflow:hidden;
+}
+#loginForm button
+{
+	margin-top: 1em;
+	background-color: #FFF;
+	border: none;
+	font-family: FranchiseRegular;
+	font-size: 2em;
+	box-shadow: #CCC 0px 0px 10px 4px;
+	cursor: pointer;
+}
+#loginForm button:hover
+{
+	box-shadow: #333 0px 0px 10px 4px;
+}
+
+#loginForm label{
+	display:block;
+}
+
+#urlText{
+	margin-left: -25%;
+	width: 150%;
+	margin-top: 2em;
+	font-size: 0.5em;
+	font-family: georgia;
+	color: #AAA;
+}
+
 canvas
 {
 	width: 100%; 
@@ -23,36 +78,52 @@ canvas
 
 .myTurn
 {
-	border: solid black 2px;
+	box-shadow: #666 0px 0px 15px 0px;
 }
 
 .otherTurn
 {
-	border: none;
+	box-shadow: none;
 }
 
-#key1
-{
+#keys{
+	width: 15em;
+	height: 14em;
 	position: absolute;
-	width: 3em;
-	height: 3em;
 	margin: 2em;
 }
-
-#key2
+.key
 {
-	position: absolute;
-	width: 3em;
+	width: 15em;
 	height: 3em;
-	margin: 2em;
-	top:4em;
+	margin-bottom: 1em;	
 }
-
-.keyText
+.keyNumber
 {
-	margin-top: 0.3em;
+	width: 1em;
+	height: 1em;
+	float: left;
+	font-size: 3em;
 	text-align: center;
-	font-size: 2em;
+	padding-top: 0.1em;
+}
+.keyName
+{
+	width: 11em;
+	height: 3em;
+	padding-top: 1em;
+	padding-left: 1em;
+	float: left;
+}
+
+#turnText
+{
+	position:absolute;
+	width:25%;
+	margin-left:50%;
+	left:-12.5%;
+	top:12.5%;
+	text-align:center;
 }
 
 #instructions

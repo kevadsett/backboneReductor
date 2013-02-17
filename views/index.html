@@ -7,13 +7,26 @@
 	<link href="/css/styles.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-	<div id="key1">
-		<div class = keyText id="keyText1"></div>
-	</div>
-	<div id="key2">
-		<div class = keyText id="keyText2"></div>
-	</div>
-	<div id="instructions">
+	<div id="login">
+    	Welcome. Please enter your name.
+        <form id = "loginForm">
+        	<textarea id="nameText" autofocus="true" placeholder="Your name here"></textarea>
+            <button type = "submit">Submit</button>
+        </form>
+    </div>
+    <div id="keys" class="invisible">
+        <div class="key" id="key1">
+            <div class=keyNumber id="keyNumber1"></div>
+            <div class="keyName" id="name1">Waiting for player 1</div>
+        </div>
+        <div class="key" id="key2">
+            <div class=keyNumber id="keyNumber2"></div>
+            <div class="keyName" id="name2">Waiting for player 2</div>
+        </div>
+        
+    </div>
+    <div id="turnText" class="invisible">Please wait for another player</div>
+	<div id="instructions" class="invisible">
 		<div class = "instructionText">Left and right to change your view<br/>Click a block to remove it</div>
 	</div>
 	<script src= "/js/libs/three.min.js"></script>

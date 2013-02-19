@@ -93,7 +93,7 @@ io.sockets.on('connection', function (client) {
 			{
 				console.log("Emitting cubeRemoved and turn changed");
 				clients[i].emit('modelCubeRemoved', {cubeID: data.cubeID});
-				clients[i].emit('turnChanged', {turn:client.game.turn});
+				if(client.game.realtime == false) clients[i].emit('turnChanged', {turn:client.game.turn});
 			}
 		}
 	});

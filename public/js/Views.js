@@ -66,6 +66,8 @@ var GameView = Backbone.View.extend({
 
 		this.serverRemoved = false;
 
+		this.lastPlayerRemovedID = this.lastServerRemovedID = -1;
+
 		this.model.bind('remove', this.cubeRemoved, this);
 
 		var self = this;
@@ -75,11 +77,11 @@ var GameView = Backbone.View.extend({
 			self.render();
 		});
 		window.socket.on('modelCubeRemoved', function(data){
-			console.log("Server cube removed. Model ID: " + data.cubeID);
+			//console.log("Server cube removed. Model ID: " + data.cubeID);
 			self.serverRemovedCube(data.cubeID);
 		});
 		window.socket.on('turnChanged', function(data){
-			console.log("Turn has changed, new turn = " + data.turn);
+			//console.log("Turn has changed, new turn = " + data.turn);
 			if(self.turn != data.turn) self.turn = data.turn;
 			self.render();
 		});
@@ -90,9 +92,10 @@ var GameView = Backbone.View.extend({
 	},
 
 	cubeRemoved: function(options){
-		console.log("options.get('id'): " + options.get('id'));
-		console.log("options.id: " +  options.id);
-		console.log("Sending ID: " + options.get('id') + " to server");
+		//console.log("options.get('id'): " + options.get('id'));
+		//console.log("options.id: " +  options.id);
+		//console.log("Sending ID: " + options.get('id') + " to server");
+		console.log("cubeRemoved: this.lastServerRemovedID = " + this.lastServerRemovedID + ", this.lastPlayerRemovedID = " + this.lastPlayerRemovedID);
 		if(this.serverRemoved == false) window.socket.emit('cubeRemoved', {cubeID: options.get('id')});
 	},
 
@@ -285,8 +288,7 @@ var GameView = Backbone.View.extend({
 				if(self.INTERSECTED.selectable)
 				{
 					var intersectedCubeIndex = self.getCubeModelIDByPosition(self.INTERSECTED.position.x, self.INTERSECTED.position.y, self.INTERSECTED.position.z);
-					console.log("CubeMesh " + self.INTERSECTED.id + " clicked (model id: " + intersectedCubeIndex + ")" );
-					this.serverRemoved = false;
+					//console.log("CubeMesh " + self.INTERSECTED.id + " clicked (model id: " + intersectedCubeIndex + ")" );
 					self.removeCube(intersectedCubeIndex);
 					self.INTERSECTED = null;
 				}
@@ -298,12 +300,13 @@ var GameView = Backbone.View.extend({
 	},
 
 	serverRemovedCube: function(cubeID){
-		console.log("removing cube: removed by server");
+		console.log("Cube " + cubeID + " removed by server");
 		Reductor.scene.remove(this.cubeViews[cubeID]);
 		this.cubeViews.splice(cubeID, 1);
 		var cubeModel = this.model.at(cubeID);
 		//console.log("Before cube deletion: ");
 		//this.logCubeModels();
+		this.lastServerRemovedID = cubeID;
 		this.serverRemoved = true;
 		this.model.remove(cubeModel);
 		this.resetCubeIDs();
@@ -313,12 +316,13 @@ var GameView = Backbone.View.extend({
 	},
 
 	removeCube: function(cubeID){
-		console.log("removing cube: removed by player");
+		console.log("Cube " + cubeID + " removed by player");
 		Reductor.scene.remove(this.cubeViews[cubeID]);
 		this.cubeViews.splice(cubeID, 1);
 		var cubeModel = this.model.at(cubeID);
 		//console.log("Before cube deletion: ");
 		//this.logCubeModels();
+		this.lastPlayerRemovedID = cubeID;
 		this.serverRemoved = false;
 		this.model.remove(cubeModel);
 		this.resetCubeIDs();
@@ -429,20 +433,20 @@ var GameView = Backbone.View.extend({
 	{
 		//console.log("this.turn: " + this.turn + ", this.playerNumber: " + this.playerNumber);
 		if(this.realtime == false && this.turn != this.playerNumber) {
-			console.log("false: it's not your turn");
+			//console.log("false: it's not your turn");
 			return false;
 		} else {
 			var cubeModelIndex = this.getCubeModelIDByPosition(cube.position.x, cube.position.y, cube.position.z);
 			var cubeModel = this.model.at(cubeModelIndex);
 			var targetColour = this.colours[this.playerNumber];
 			if(cubeModel.get('colour') != targetColour){
-				console.log("false: wrong colour");
+				//console.log("false: wrong colour");
 				return false;
 			} else if(Reductor.utils.cubeExistsAbove(cube.position.x, cube.position.y, cube.position.z, this.model)){
-				console.log("false: cube exists above this one");
+				//console.log("false: cube exists above this one");
 				return false;
 			} else {
-				console.log("true");
+				//console.log("true");
 				return true;
 			}
 		}

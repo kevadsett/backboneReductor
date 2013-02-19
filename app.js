@@ -80,10 +80,10 @@ io.sockets.on('connection', function (client) {
 		}
 	});
 
-	client.on('cubeRemoved', function(data){
-		console.log("cube removed: " + data.cubeID);
-		client.game.deleteCube(data.cubeID);
-		client.emit('turnChanged', {turn:client.game.turn});
+	client.on('cubeClicked', function(data){
+		console.log("cube clicked: " + data.cubeID);
+		client.game.clickedCube(data.cubeID);
+		if(client.game.realtime == false) client.emit('turnChanged', {turn:client.game.turn});
 		var otherPlayerID = client.game.getOtherPlayerID(client.id);
 		console.log("otherPlayerID: " + otherPlayerID);
 		for(var i=0; i<clients.length; i++)
@@ -91,8 +91,7 @@ io.sockets.on('connection', function (client) {
 			console.log(clients[i].id);
 			if(clients[i].id == otherPlayerID)
 			{
-				console.log("Emitting cubeRemoved and turn changed");
-				clients[i].emit('modelCubeRemoved', {cubeID: data.cubeID});
+				clients[i].emit('modelCubeClicked', {cubeID: data.cubeID});
 				if(client.game.realtime == false) clients[i].emit('turnChanged', {turn:client.game.turn});
 			}
 		}
@@ -118,7 +117,7 @@ io.sockets.on('connection', function (client) {
 			}
 		}
 
-		
+
 
 		lobby.removeGame(client.game);
 	})

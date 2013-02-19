@@ -48,7 +48,7 @@ function Game(id, realtime){
 	this.id = id;
 	this.realtime = realtime
 	this.connectedPlayers = 0;
-	this.size = 2;
+	this.size = 13;
 	this.cubes = [];
 	this.players = [];
 	this.colours = utils.getTwoDifferentColours();
@@ -194,8 +194,8 @@ Game.prototype.resetCubeIDs = function()
 	}
 }
 
-Game.prototype.deleteCube = function(cubeID){
-	this.cubes.splice(cubeID, 1);
+Game.prototype.clickedCube = function(cubeID){
+	this.cubes[cubeID].clicked = true;
 	if(this.realtime == false) this.turn = (this.turn + 1) % 2;
 	if(this.realtime == false) console.log("new turn: " + this.turn);
 };

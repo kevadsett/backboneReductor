@@ -48,7 +48,7 @@ function Game(id, realtime){
 	this.id = id;
 	this.realtime = realtime
 	this.connectedPlayers = 0;
-	this.size = 13;
+	this.size = 7;
 	this.cubes = [];
 	this.players = [];
 	this.colours = utils.getTwoDifferentColours();

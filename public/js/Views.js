@@ -56,7 +56,7 @@ var GameView = Backbone.View.extend({
 		var cameraDistance = this.model.size + 5;
 		this.camera.position.set(cameraDistance, cameraDistance, cameraDistance);
 		this.camera.lookAt(Reductor.scene.position);
-		_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'onMouseDown', 'removeCube', 'getIntersects', 'onKeyDown', 'getCubeMeshIDByPosition', 'getCubeModelIDByPosition',  'getCubeViewByPosition', 'logCubeModels', 'resetCubeIDs', 'serverRemovedCube');
+		_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'onMouseDown', 'removeCube', 'getIntersects', 'onKeyDown', 'getCubeMeshIDByPosition', 'getCubeModelIDByPosition',  'getCubeViewByPosition', 'logCubeModels', 'resetCubeIDs', 'serverRemovedCube', 'cubeExistsAbove');
 
 		this.setupRenderer();
 		this.resizeCanvas();
@@ -168,7 +168,7 @@ var GameView = Backbone.View.extend({
 		var myKeyNumber = this.playerNumber;
 		var otherKeyNumber = (this.playerNumber + 1) % 2;
 		var textColours = [Reductor.utils.DetermineBrightness(Reductor.utils.HexStringToUint(this.colours[0])) < 0.5 ? "#FFFFFF" : "#000000", Reductor.utils.DetermineBrightness(Reductor.utils.HexStringToUint(this.colours[1])) < 0.5 ? "#FFFFFF" : "#000000"];
-		if(this.realtime == false) 
+		if(this.realtime == false)
 		{
 			if (this.turn == this.playerNumber) {
 				$('#key1 .keyNumber').removeClass("otherTurn");
@@ -196,8 +196,8 @@ var GameView = Backbone.View.extend({
 		})
 		$('#key2 .keyNumber').html(this.getPlayerCubes(otherKeyNumber).length);
 		$('#key2 .keyName').html(this.playerNames[otherKeyNumber]);
-		
-		if(this.realtime == false) 
+
+		if(this.realtime == false)
 		{
 			var turnText = this.playerNumber == this.turn ? "Your turn" : this.playerNames[this.turn] + "'s turn";
 			$('#turnText').html(turnText);
@@ -317,17 +317,10 @@ var GameView = Backbone.View.extend({
 
 	removeCube: function(cubeID){
 		console.log("Cube " + cubeID + " removed by player");
-		Reductor.scene.remove(this.cubeViews[cubeID]);
-		this.cubeViews.splice(cubeID, 1);
 		var cubeModel = this.model.at(cubeID);
-		//console.log("Before cube deletion: ");
-		//this.logCubeModels();
-		this.lastPlayerRemovedID = cubeID;
-		this.serverRemoved = false;
-		this.model.remove(cubeModel);
-		this.resetCubeIDs();
-		//console.log("-------------------------------------\nAfter cube deletion:");
-		//this.logCubeModels();
+		cubeModel.set({clicked: true});
+		console.log("this.cubeViews[" + cubeID + "].id: " + this.cubeViews[cubeID].id + "| position: [" + this.cubeViews[cubeID].position.x + ", " + this.cubeViews[cubeID].position.y + ", " + this.cubeViews[cubeID].position.z + "]");
+		this.logCubeModels();
 		if(this.realtime == false) this.turn = (this.turn + 1) % 2;
 		this.render();
 	},
@@ -404,6 +397,7 @@ var GameView = Backbone.View.extend({
 				return cube.id;
 			}
 		}
+		return -1;
 	},
 
 	getCubeMeshIDByPosition: function(x, y, z){
@@ -416,6 +410,7 @@ var GameView = Backbone.View.extend({
 				return cube.id;
 			}
 		}
+		return -1;
 	},
 
 	getCubeViewByPosition: function(x, y, z){
@@ -426,6 +421,19 @@ var GameView = Backbone.View.extend({
 			{
 				return {index: i, cubeView: this.cubeViews[i]};
 			}
+		}
+		return null;
+	},
+
+	cubeExistsAbove: function(x, y, z)
+	{
+		var cubeModelID = this.getCubeModelIDByPosition(x, y+1, z);
+		if(cubeModelID == -1){
+			return false;
+		} else if(this.model.at(cubeModelID).get('clicked') == false){
+			return true;
+		} else {
+			return false;
 		}
 	},
 
@@ -442,7 +450,7 @@ var GameView = Backbone.View.extend({
 			if(cubeModel.get('colour') != targetColour){
 				//console.log("false: wrong colour");
 				return false;
-			} else if(Reductor.utils.cubeExistsAbove(cube.position.x, cube.position.y, cube.position.z, this.model)){
+			} else if(this.cubeExistsAbove(cube.position.x, cube.position.y, cube.position.z)){
 				//console.log("false: cube exists above this one");
 				return false;
 			} else {
@@ -458,7 +466,7 @@ var GameView = Backbone.View.extend({
 		{
 			var cube = this.model.at(i);
 			var position = cube.get('position');
-			console.log("models[" + i + "]" + ": cube.id: " + cube.id + " | cube.get('id'): " + cube.get('id') + " | [" + position.x + ", " + position.y + ", " + position.z + "]");
+			console.log("models[" + i + "]" + ": cube.id: " + cube.id + " | cube.get('id'): " + cube.get('id') + " | [" + position.x + ", " + position.y + ", " + position.z + "] | clicked: " + cube.get('clicked'));
 		}
 	}
 });

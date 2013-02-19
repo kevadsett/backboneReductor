@@ -48,7 +48,7 @@ function Game(id, realtime){
 	this.id = id;
 	this.realtime = realtime
 	this.connectedPlayers = 0;
-	this.size = 13;
+	this.size = 2;
 	this.cubes = [];
 	this.players = [];
 	this.colours = utils.getTwoDifferentColours();
@@ -93,14 +93,14 @@ Game.prototype.generateLevel = function(){
 	for(var i=0; i<this.size; i++) {
 		for(var j = 0; j<this.size; j++) {
 			var newPosition = new Vectors.Vector3D(Math.ceil(i - this.size/2), heightMap[i][j], Math.ceil(j -  this.size/2));
-			this.cubes.push({id: index, position: newPosition});
+			this.cubes.push({id: index, position: newPosition, clicked: false});
 			if(heightMap[i][j] != 0) {
 				var currentHeight = heightMap[i][j];
 				while (currentHeight != 0) {
 					index++;
 					currentHeight--;
 					var newSubPosition = new Vectors.Vector3D(Math.ceil(i - this.size/2), currentHeight, Math.ceil(j - this.size/2));
-					this.cubes.push({id: index, position: newSubPosition});
+					this.cubes.push({id: index, position: newSubPosition, clicked: false});
 
 				}
 			}
@@ -165,7 +165,7 @@ Game.prototype.shaveTopCubeOff = function(playerToRemove){
 		var zIsBetter = Math.abs(currentPosition.z) < Math.abs(topPosition.z);
 		//console.log("zIsBetter: " + zIsBetter);
 		var cubeExistsAbove = utils.cubeExistsAbove(currentPosition.x, currentPosition.y, currentPosition.z, this.cubes);
-		//console.log("cubeExistsAbove: " + cubeExistsAbove);
+		console.log("cubeExistsAbove: " + cubeExistsAbove);
 		var cubeScore = 0;
 		if(xIsBetter) cubeScore++;
 		if(yIsBetter) cubeScore+=2;

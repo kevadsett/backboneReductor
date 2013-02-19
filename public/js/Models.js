@@ -1,7 +1,8 @@
 var CubeModel = Backbone.Model.extend({
 	defaults:{
 		position: new Vector3D(0,0,0),
-		colour: '#000000'
+		colour: '#000000',
+		clicked: false
 	},
 	initialize: function(){
 		this.bind('change', this.attributesChanged);

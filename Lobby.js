@@ -34,7 +34,7 @@ Lobby.prototype.getGame = function(){
 };
 
 Lobby.prototype.addGame = function(){
-	this.gamesInProgress.push(new Game(this.gamesInProgress.length));
+	this.gamesInProgress.push(new Game(this.gamesInProgress.length, true));
 	return(this.gamesInProgress[this.gamesInProgress.length-1]);
 };
 

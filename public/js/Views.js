@@ -275,7 +275,7 @@ var GameView = Backbone.View.extend({
 		var self = this;
 
 		event.preventDefault();
-		if((this.realtime == true && this.turn == this.playerNumber) || this.realtime == false)
+		if((self.realtime == false && self.turn == self.playerNumber) || self.realtime == true)
 		{
 			if (self.INTERSECTED) {
 				if(self.INTERSECTED.selectable)
@@ -424,7 +424,7 @@ var GameView = Backbone.View.extend({
 	cubeIsSelectable: function(cube)
 	{
 		//console.log("this.turn: " + this.turn + ", this.playerNumber: " + this.playerNumber);
-		if(this.realtime == true  && this.turn != this.playerNumber) {
+		if(this.realtime == false && this.turn != this.playerNumber) {
 			console.log("false: it's not your turn");
 			return false;
 		} else {
@@ -432,13 +432,13 @@ var GameView = Backbone.View.extend({
 			var cubeModel = this.model.at(cubeModelIndex);
 			var targetColour = this.colours[this.playerNumber];
 			if(cubeModel.get('colour') != targetColour){
-				//console.log("false: wrong colour");
+				console.log("false: wrong colour");
 				return false;
 			} else if(Reductor.utils.cubeExistsAbove(cube.position.x, cube.position.y, cube.position.z, this.model)){
-				//console.log("false: cube exists above this one");
+				console.log("false: cube exists above this one");
 				return false;
 			} else {
-				//console.log("true");
+				console.log("true");
 				return true;
 			}
 		}

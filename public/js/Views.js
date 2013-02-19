@@ -1,6 +1,7 @@
 Reductor = {};
 Reductor.scene = new THREE.Scene();
 Reductor.utils = new Utils();
+var mouseDown = false;
 var CubeView = Backbone.View.extend({
 	initialize: function(params){
 		//console.log(params);
@@ -55,7 +56,7 @@ var GameView = Backbone.View.extend({
 		var cameraDistance = this.model.size + 5;
 		this.camera.position.set(cameraDistance, cameraDistance, cameraDistance);
 		this.camera.lookAt(Reductor.scene.position);
-		_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'onMouseDown', 'removeCube', 'getIntersects', 'onKeyDown', 'getCubeMeshIDByPosition', 'getCubeModelIDByPosition',  'getCubeViewByPosition', 'logCubeModels', 'resetCubeIDs', 'serverRemovedCube');
+		_.bindAll(this, 'render', 'resizeCanvas','setupRenderer', 'initialiseCubeViews', 'createLights', 'onMouseMoved', 'onMouseDown', 'onMouseUp', 'removeCube', 'getIntersects', 'onKeyDown', 'getCubeMeshIDByPosition', 'getCubeModelIDByPosition',  'getCubeViewByPosition', 'logCubeModels', 'resetCubeIDs', 'serverRemovedCube');
 
 		this.setupRenderer();
 		this.resizeCanvas();
@@ -64,6 +65,8 @@ var GameView = Backbone.View.extend({
 		this.render();
 
 		this.serverRemoved = false;
+		
+		this.pMouseX;
 
 		this.model.bind('remove', this.cubeRemoved, this);
 
@@ -124,6 +127,7 @@ var GameView = Backbone.View.extend({
 		this.renderer.domElement.addEventListener( 'mousemove', this.onMouseMoved, false );
 		$(document).keydown(this.onKeyDown);
 		this.renderer.domElement.addEventListener( 'mousedown', this.onMouseDown, false );
+		this.renderer.domElement.addEventListener( 'mouseup', this.onMouseUp, false );
 		window.addEventListener( 'resize', this.resizeCanvas, false );
 		$('body').append(this.renderer.domElement);
 	},
@@ -146,6 +150,7 @@ var GameView = Backbone.View.extend({
 
 				if(this.movementDirection == this.LEFT)
 				{
+					console.log(this.rotSpeed);
 					this.camera.position.x = this.camX * Math.cos(this.rotSpeed) - this.camZ * Math.sin(this.rotSpeed)/* * elapsed*/;
 					this.camera.position.z = this.camZ * Math.cos(this.rotSpeed) + this.camX * Math.sin(this.rotSpeed)/* * elapsed*/;
 				}
@@ -225,6 +230,39 @@ var GameView = Backbone.View.extend({
 
 	onMouseMoved: function(event){
 		event.preventDefault();
+		if(mouseDown){
+			if(this.pMouseX >=0)
+			{
+				var mouseDelta = event.pageX - this.pMouseX;
+			}
+			if(Math.abs(mouseDelta) > 2)
+			{
+				this.camX = this.camera.position.x;
+				this.camZ = this.camera.position.z;
+				mouseDelta = Math.PI/mouseDelta;
+				console.log(mouseDelta);
+				this.dragging = true;
+				if(mouseDelta > 0)
+				{
+					mouseDelta = Math.abs(mouseDelta)/1.5;
+					this.camera.position.x = this.camX * Math.cos(this.rotSpeed) - this.camZ * Math.sin(this.rotSpeed)/* * elapsed*/;
+					this.camera.position.z = this.camZ * Math.cos(this.rotSpeed) + this.camX * Math.sin(this.rotSpeed)/* * elapsed*/;
+				}
+				else if (mouseDelta < 0)
+				{
+					mouseDelta = Math.abs(mouseDelta)/1.5;
+					this.camera.position.x = this.camX * Math.cos(this.rotSpeed) + this.camZ * Math.sin(this.rotSpeed)/* * elapsed*/;
+					this.camera.position.z = this.camZ * Math.cos(this.rotSpeed) - this.camX * Math.sin(this.rotSpeed)/* * elapsed*/;
+				}
+				this.camera.lookAt(Reductor.scene.position);
+				this.render();
+			}
+			else
+			{
+				this.dragging = false;
+			}
+			this.pMouseX = event.pageX;
+		}
 		var intersects = this.getIntersects(event);
 		if ( intersects ) {
 			if(intersects.length > 0)
@@ -263,8 +301,18 @@ var GameView = Backbone.View.extend({
 		}
 
 	},
+	
 	onMouseDown: function(event)
 	{
+		mouseDown = true;
+		var self = this;
+
+		event.preventDefault();
+	},
+	
+	onMouseUp: function(event)
+	{
+		mouseDown = false;
 		var self = this;
 
 		event.preventDefault();

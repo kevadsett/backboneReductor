@@ -47,6 +47,7 @@ var GameView = Backbone.View.extend({
 		this.cubeViews = [];
 		this.playerNumber = params.playerNumber;
 		this.colours = params.colours;
+		this.realtime = params.realtime;
 		this.turn = params.turn;
 		this.playerNames = [];
 		for(var i=0; i<params.players.length; i++)
@@ -169,16 +170,19 @@ var GameView = Backbone.View.extend({
 		var myKeyNumber = this.playerNumber;
 		var otherKeyNumber = (this.playerNumber + 1) % 2;
 		var textColours = [Reductor.utils.DetermineBrightness(Reductor.utils.HexStringToUint(this.colours[0])) < 0.5 ? "#FFFFFF" : "#000000", Reductor.utils.DetermineBrightness(Reductor.utils.HexStringToUint(this.colours[1])) < 0.5 ? "#FFFFFF" : "#000000"];
-		if (this.turn == this.playerNumber) {
-			$('#key1 .keyNumber').removeClass("otherTurn");
-			$('#key1 .keyNumber').addClass("myTurn");
-			$('#key2 .keyNumber').removeClass("myTurn");
-			$('#key2 .keyNumber').addClass("otherTurn");
-		}else{
-			$('#key1 .keyNumber').addClass("otherTurn");
-			$('#key1 .keyNumber').removeClass("myTurn");
-			$('#key2 .keyNumber').addClass("myTurn");
-			$('#key2 .keyNumber').removeClass("otherTurn");
+		if(this.realtime == false) 
+		{
+			if (this.turn == this.playerNumber) {
+				$('#key1 .keyNumber').removeClass("otherTurn");
+				$('#key1 .keyNumber').addClass("myTurn");
+				$('#key2 .keyNumber').removeClass("myTurn");
+				$('#key2 .keyNumber').addClass("otherTurn");
+			}else{
+				$('#key1 .keyNumber').addClass("otherTurn");
+				$('#key1 .keyNumber').removeClass("myTurn");
+				$('#key2 .keyNumber').addClass("myTurn");
+				$('#key2 .keyNumber').removeClass("otherTurn");
+			}
 		}
 
 		$('#key1 .keyNumber').css({
@@ -195,8 +199,11 @@ var GameView = Backbone.View.extend({
 		$('#key2 .keyNumber').html(this.getPlayerCubes(otherKeyNumber).length);
 		$('#key2 .keyName').html(this.playerNames[otherKeyNumber]);
 		
-		var turnText = this.playerNumber == this.turn ? "Your turn" : this.playerNames[this.turn] + "'s turn";
-		$('#turnText').html(turnText);
+		if(this.realtime == false) 
+		{
+			var turnText = this.playerNumber == this.turn ? "Your turn" : this.playerNames[this.turn] + "'s turn";
+			$('#turnText').html(turnText);
+		}
 		if(this.moving) window.requestAnimationFrame(this.render);
 	},
 	getPlayerCubes:function(playerNumber){
@@ -316,7 +323,7 @@ var GameView = Backbone.View.extend({
 		var self = this;
 
 		event.preventDefault();
-		if(this.turn == this.playerNumber)
+		if((this.realtime == true && this.turn == this.playerNumber) || this.realtime == false)
 		{
 			if (self.INTERSECTED) {
 				if(self.INTERSECTED.selectable)
@@ -328,7 +335,7 @@ var GameView = Backbone.View.extend({
 					self.INTERSECTED = null;
 				}
 				else{
-					if(self.turn != self.playerNumber) alert("It's not your turn!");
+					if(this.realtime == false) if(self.turn != self.playerNumber) alert("It's not your turn!");
 				}
 			}
 		}
@@ -361,7 +368,7 @@ var GameView = Backbone.View.extend({
 		this.resetCubeIDs();
 		//console.log("-------------------------------------\nAfter cube deletion:");
 		//this.logCubeModels();
-		this.turn = (this.turn + 1) % 2;
+		if(this.realtime == false) this.turn = (this.turn + 1) % 2;
 		this.render();
 	},
 
@@ -465,7 +472,7 @@ var GameView = Backbone.View.extend({
 	cubeIsSelectable: function(cube)
 	{
 		//console.log("this.turn: " + this.turn + ", this.playerNumber: " + this.playerNumber);
-		if(this.turn != this.playerNumber) {
+		if(this.realtime == true  && this.turn != this.playerNumber) {
 			console.log("false: it's not your turn");
 			return false;
 		} else {

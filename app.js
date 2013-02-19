@@ -67,7 +67,7 @@ io.sockets.on('connection', function (client) {
 		client.game.addPlayer({id:client.id, name:client.nickname});
 		var playerNumber = client.game.connectedPlayers - 1;
 
-		client.emit('connected', {gameModel: client.game.cubes, playerNumber:playerNumber, players:client.game.players, gameSize: client.game.size, colours:client.game.colours, turn:client.game.turn});
+		client.emit('connected', {gameModel: client.game.cubes, playerNumber:playerNumber, players:client.game.players, gameSize: client.game.size, colours:client.game.colours, realtime:client.game.realtime, turn:client.game.turn});
 		var otherPlayerID = client.game.getOtherPlayerID(client.id);
 		console.log(otherPlayerID);
 		for(var i=0; i<clients.length; i++)

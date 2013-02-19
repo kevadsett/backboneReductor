@@ -43,17 +43,18 @@ Lobby.prototype.removeGame = function(gameToRemove){
 	if(gameIndex != -1) this.gamesInProgress.splice(gameIndex, 1);
 }
 
-function Game(id){
+function Game(id, realtime){
 	console.log("New game. ID: " + id);
 	this.id = id;
+	this.realtime = realtime
 	this.connectedPlayers = 0;
 	this.size = 5;
 	this.cubes = [];
 	this.players = [];
 	this.colours = utils.getTwoDifferentColours();
 	this.generateLevel();
-	this.turn = Math.round(Math.random());
-	console.log("New game created, first turn: " + this.turn);
+	if(this.realtime == false) this.turn = Math.round(Math.random());
+	if(this.realtime == false) console.log("New game created, first turn: " + this.turn);
 };
 
 Game.prototype.addPlayer = function(player){
@@ -195,8 +196,8 @@ Game.prototype.resetCubeIDs = function()
 
 Game.prototype.deleteCube = function(cubeID){
 	this.cubes.splice(cubeID, 1);
-	this.turn = (this.turn + 1) % 2;
-	console.log("new turn: " + this.turn);
+	if(this.realtime == false) this.turn = (this.turn + 1) % 2;
+	if(this.realtime == false) console.log("new turn: " + this.turn);
 };
 
 module.exports = Lobby;

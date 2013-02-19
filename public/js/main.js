@@ -24,7 +24,7 @@ $(document).ready(function(e)
 		$('#turnText').removeClass("invisible");
 		var cubeCollection = new CubeCollection(data.gameModel);
 		cubeCollection.size = data.gameSize;
-		var gameView = new GameView({model:cubeCollection, colours:data.colours, playerNumber:data.playerNumber, players:data.players, turn:data.turn});
+		var gameView = new GameView({model:cubeCollection, colours:data.colours, playerNumber:data.playerNumber, players:data.players, realtime:data.realtime, turn:data.turn});
 	});
 
 	$('#nameText').bind("enterKey", function(e){

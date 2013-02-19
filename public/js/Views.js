@@ -199,6 +199,10 @@ var GameView = Backbone.View.extend({
 			var turnText = this.playerNumber == this.turn ? "Your turn" : this.playerNames[this.turn] + "'s turn";
 			$('#turnText').html(turnText);
 		}
+		else
+		{
+			$('#turnText').hide();
+		}
 		if(this.moving) window.requestAnimationFrame(this.render);
 	},
 	getPlayerCubes:function(playerNumber){
